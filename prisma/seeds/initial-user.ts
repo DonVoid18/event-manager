@@ -32,6 +32,7 @@ export async function seedInitialUser(prisma: PrismaClient) {
       name,
       email,
       password: hashedPassword,
+      role: "ADMIN",
       emailVerified: process.env.VERIFICATION_EMAIL_ACTIVE === "true" ? null : new Date(),
     },
   });

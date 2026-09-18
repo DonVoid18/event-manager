@@ -5,7 +5,7 @@ import {
 } from "@/shared/infrastructure/shadcn/components/ui/sidebar";
 import { EMAIL_VERIFICATION_ROUTE, SIGN_IN_ROUTE } from "@/shared/infrastructure/utils/routes";
 
-import { auth } from "@/shared/infrastructure/libs/auth";
+import { auth, signOut } from "@/shared/infrastructure/libs/auth";
 import { AppSidebar } from "@/shared/infrastructure/shadcn/components/app-sidebar";
 import { UserLoged } from "@/shared/infrastructure/types/userLoged";
 import { Earth } from "lucide-react";
@@ -23,6 +23,11 @@ export default async function MainLayout({
     redirect(SIGN_IN_ROUTE);
   }
 
+  if (!session.user.isActive) {
+    await signOut({ redirect: false });
+    redirect(SIGN_IN_ROUTE);
+  }
+
   if (!session.user.emailVerified) {
     redirect(EMAIL_VERIFICATION_ROUTE);
   }
@@ -33,6 +38,8 @@ export default async function MainLayout({
     email: session.user.email,
     emailVerified: session.user.emailVerified,
     image: session.user.image,
+    role: session.user.role,
+    isActive: session.user.isActive,
   }
 
   return (
@@ -43,6 +50,7 @@ export default async function MainLayout({
           email: user.email ?? "",
           avatar: user.image ?? "",
         }}
+        role={user.role}
       />
       <SidebarInset className="h-svh overflow-hidden">
         <div className="flex h-14 shrink-0 items-center justify-between border-b px-4 md:hidden">

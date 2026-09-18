@@ -42,6 +42,11 @@ model Session {
   @@map("sessions")
 }
 
+enum Role {
+  ADMIN
+  COLABORADOR
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -49,6 +54,8 @@ model User {
   emailVerified DateTime? @map("email_verified")
   image         String?
   password      String?
+  role          Role      @default(COLABORADOR)
+  isActive      Boolean   @default(true) @map("is_active")
   accounts      Account[]
   sessions      Session[]
 
@@ -73,4 +80,111 @@ model Product {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("products")
+}
+
+enum EventType {
+  GRATUITO
+  PAGO
+}
+
+enum InvitationStatus {
+  PENDIENTE
+  ENVIADA
+  CONFIRMADA
+}
+
+enum IncidentCategory {
+  ACCESO
+  DOCUMENTACION
+  PAGO
+  TECNICA
+  OTRO
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  name      String
+  eventDate DateTime  @map("event_date")
+  type      EventType
+  capacity  Int
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  attendees Attendee[]
+  incidents Incident[]
+
+  @@map("events")
+}
+
+model Attendee {
+  id                String   @id @default(cuid())
+  eventId           String   @map("event_id")
+  firstName         String   @map("first_name")
+  lastName          String   @map("last_name")
+  documentId        String   @map("document_id")
+  email             String
+  phone             String?
+  paymentAmount     Float?   @map("payment_amount")
+  paymentReference  String?  @map("payment_reference")
+  paymentReceiptKey String?  @map("payment_receipt_key")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  invitation Invitation?
+  checkIn    CheckIn?
+  incidents  Incident[]
+
+  @@unique([eventId, documentId])
+  @@unique([eventId, email])
+  @@map("attendees")
+}
+
+model Invitation {
+  id         String           @id @default(cuid())
+  attendeeId String           @unique @map("attendee_id")
+  code       String           @unique
+  status     InvitationStatus @default(PENDIENTE)
+  sentAt     DateTime?        @map("sent_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  attendee Attendee                  @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  history  InvitationStatusHistory[]
+
+  @@map("invitations")
+}
+
+model InvitationStatusHistory {
+  id           String           @id @default(cuid())
+  invitationId String           @map("invitation_id")
+  status       InvitationStatus
+  changedAt    DateTime         @default(now()) @map("changed_at")
+
+  invitation Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+
+  @@map("invitation_status_history")
+}
+
+model CheckIn {
+  id          String   @id @default(cuid())
+  attendeeId  String   @unique @map("attendee_id")
+  checkedInAt DateTime @default(now()) @map("checked_in_at")
+
+  attendee Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+
+  @@map("check_ins")
+}
+
+model Incident {
+  id          String           @id @default(cuid())
+  eventId     String           @map("event_id")
+  attendeeId  String?          @map("attendee_id")
+  description String
+  category    IncidentCategory
+  occurredAt  DateTime         @default(now()) @map("occurred_at")
+
+  event    Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attendee Attendee? @relation(fields: [attendeeId], references: [id], onDelete: SetNull)
+
+  @@map("incidents")
 }
