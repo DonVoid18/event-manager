@@ -1,4 +1,4 @@
-import { Earth } from "lucide-react";
+import { CalendarClock } from "lucide-react";
 
 import { MAIN_ROUTE } from "@/shared/infrastructure/utils/routes";
 
@@ -12,10 +12,10 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href={MAIN_ROUTE} className="flex items-center gap-2 font-medium">
-            <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Earth className="size-4" />
+            <div className="flex size-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-indigo-700 text-primary-foreground">
+              <CalendarClock className="size-4" />
             </div>
-            <span className="font-semibold text-lg">TEMPLATE</span>
+            <span className="font-semibold text-lg">TUMITECH</span>
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -31,7 +31,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             backgroundSize: "28px 28px",
           }}
         />
-        <Earth className="relative size-48 text-white/10" strokeWidth={1} />
+        <div className="relative flex flex-col items-center gap-4 text-center">
+          <CalendarClock className="size-40 text-white/15" strokeWidth={1} />
+          <div className="text-white/90">
+            <p className="text-2xl font-semibold">TUMITECH</p>
+            <p className="text-sm text-white/60">Sistema de gestión de eventos</p>
+          </div>
+        </div>
       </div>
     </div>
   );

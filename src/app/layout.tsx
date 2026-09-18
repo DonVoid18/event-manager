@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Template",
-  description: "Plantilla base de proyecto Next.js",
+  title: "TUMITECH · Gestión de Eventos",
+  description: "Sistema web de gestión de eventos de TUMITECH S.A.C.",
 };
 
 export default function RootLayout({

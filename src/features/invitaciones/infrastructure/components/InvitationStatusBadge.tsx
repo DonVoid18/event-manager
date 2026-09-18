@@ -7,10 +7,10 @@ const LABELS: Record<InvitationStatus, string> = {
   CONFIRMADA: "Confirmada",
 }
 
-const VARIANTS: Record<InvitationStatus, "outline" | "secondary" | "default"> = {
-  PENDIENTE: "outline",
-  ENVIADA: "secondary",
-  CONFIRMADA: "default",
+const VARIANTS: Record<InvitationStatus, "warning" | "info" | "success"> = {
+  PENDIENTE: "warning",
+  ENVIADA: "info",
+  CONFIRMADA: "success",
 }
 
 export function InvitationStatusBadge({ status }: { status: InvitationStatus | null | undefined }) {

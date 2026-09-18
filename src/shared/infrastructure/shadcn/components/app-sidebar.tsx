@@ -16,8 +16,8 @@ import {
   SidebarTrigger,
 } from "@/shared/infrastructure/shadcn/components/ui/sidebar"
 import {
+  CalendarClock,
   CalendarDays,
-  Earth,
   FileBarChart,
   LayoutDashboardIcon,
   PackageIcon,
@@ -97,11 +97,12 @@ export function AppSidebar({ user, role, ...props }: AppSidebarProps) {
                 size="lg"
                 className="cursor-default hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent"
               >
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Earth className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-indigo-700 text-primary-foreground shadow-sm">
+                  <CalendarClock className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">TEMPLATE</span>
+                  <span className="truncate font-semibold">TUMITECH</span>
+                  <span className="truncate text-xs text-muted-foreground">Gestión de Eventos</span>
                 </div>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -8,7 +8,7 @@ import { EMAIL_VERIFICATION_ROUTE, SIGN_IN_ROUTE } from "@/shared/infrastructure
 import { auth, signOut } from "@/shared/infrastructure/libs/auth";
 import { AppSidebar } from "@/shared/infrastructure/shadcn/components/app-sidebar";
 import { UserLoged } from "@/shared/infrastructure/types/userLoged";
-import { Earth } from "lucide-react";
+import { CalendarClock } from "lucide-react";
 import { redirect } from "next/navigation";
 
 export default async function MainLayout({
@@ -55,10 +55,10 @@ export default async function MainLayout({
       <SidebarInset className="h-svh overflow-hidden">
         <div className="flex h-14 shrink-0 items-center justify-between border-b px-4 md:hidden">
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Earth className="size-4" />
+            <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-indigo-700 text-primary-foreground shadow-sm">
+              <CalendarClock className="size-4" />
             </div>
-            <span className="text-sm font-semibold">TEMPLATE</span>
+            <span className="text-sm font-semibold">TUMITECH</span>
           </div>
           <SidebarTrigger />
         </div>

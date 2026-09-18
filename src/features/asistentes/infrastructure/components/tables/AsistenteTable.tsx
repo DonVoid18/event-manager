@@ -75,7 +75,7 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
         size: 110,
         cell: ({ row }) =>
           row.original.checkIn ? (
-            <Badge variant="default">
+            <Badge variant="success">
               <UserCheck className="mr-1 size-3" />
               Ingresó
             </Badge>
