@@ -69,7 +69,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user?.password ?? ""
         );
 
-        if (!user || !isValidPassword) {
+        if (!user || !isValidPassword || !user.isActive) {
           return null;
         }
 

@@ -5,3 +5,7 @@ export const EMAIL_VERIFICATION_ROUTE = "/auth/verify-email";
 export const FORGOT_PASSWORD_ROUTE = "/auth/forgot-password";
 export const RESET_PASSWORD_ROUTE = "/auth/reset-password";
 export const apiAuthPrefix = "/api/auth";
+export const EVENTOS_ROUTE = "/eventos";
+export const CHECKIN_ROUTE = "/checkin";
+export const REPORTES_ROUTE = "/reportes";
+export const USUARIOS_ROUTE = "/usuarios";

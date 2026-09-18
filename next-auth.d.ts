@@ -11,6 +11,8 @@ declare module "next-auth" {
       name: string;
       image: string | null;
       emailVerified: Date | null;
+      role: "ADMIN" | "COLABORADOR";
+      isActive: boolean;
     };
   }
 }

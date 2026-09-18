@@ -4,4 +4,6 @@ export interface UserLoged {
   email: string;
   emailVerified: Date | null;
   image: string | null;
+  role: "ADMIN" | "COLABORADOR";
+  isActive: boolean;
 }

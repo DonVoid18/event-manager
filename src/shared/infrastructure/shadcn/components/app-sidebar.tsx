@@ -15,8 +15,22 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/shared/infrastructure/shadcn/components/ui/sidebar"
-import { Earth, LayoutDashboardIcon, PackageIcon } from "lucide-react"
-import { MAIN_ROUTE } from "@/shared/infrastructure/utils/routes"
+import {
+  CalendarDays,
+  Earth,
+  FileBarChart,
+  LayoutDashboardIcon,
+  PackageIcon,
+  ScanLine,
+  Users,
+} from "lucide-react"
+import {
+  CHECKIN_ROUTE,
+  EVENTOS_ROUTE,
+  MAIN_ROUTE,
+  REPORTES_ROUTE,
+  USUARIOS_ROUTE,
+} from "@/shared/infrastructure/utils/routes"
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: {
@@ -24,9 +38,10 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
     email: string
     avatar: string
   }
+  role: "ADMIN" | "COLABORADOR"
 }
 
-export function AppSidebar({ user, ...props }: AppSidebarProps) {
+export function AppSidebar({ user, role, ...props }: AppSidebarProps) {
   const pathname = usePathname()
 
   const navMain = [
@@ -37,11 +52,39 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       isActive: pathname === MAIN_ROUTE,
     },
     {
+      title: "Eventos",
+      url: EVENTOS_ROUTE,
+      icon: <CalendarDays />,
+      isActive: pathname.startsWith(EVENTOS_ROUTE),
+    },
+    {
+      title: "Check-in",
+      url: CHECKIN_ROUTE,
+      icon: <ScanLine />,
+      isActive: pathname.startsWith(CHECKIN_ROUTE),
+    },
+    {
+      title: "Reportes",
+      url: REPORTES_ROUTE,
+      icon: <FileBarChart />,
+      isActive: pathname.startsWith(REPORTES_ROUTE),
+    },
+    {
       title: "Productos",
       url: "/productos",
       icon: <PackageIcon />,
       isActive: pathname === "/productos",
     },
+    ...(role === "ADMIN"
+      ? [
+        {
+          title: "Usuarios",
+          url: USUARIOS_ROUTE,
+          icon: <Users />,
+          isActive: pathname.startsWith(USUARIOS_ROUTE),
+        },
+      ]
+      : []),
   ]
 
   return (
