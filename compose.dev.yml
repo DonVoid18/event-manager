@@ -1,0 +1,39 @@
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "5"
+    compress: "true"
+services:
+  app:
+    logging: *logging
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    env_file: .env
+    volumes:
+      - ./public:/app/public
+      - ./private:/app/private
+    ports:
+      - 3000:3000
+    environment:
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+    depends_on:
+      - db
+  db:
+    logging: *logging
+    image: postgres:17-alpine
+    restart: unless-stopped
+    ports:
+      - ${DB_PORT}:5432
+    volumes:
+      - ./docker/database/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - dbdata:/var/lib/postgresql/data
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+volumes:
+  dbdata:

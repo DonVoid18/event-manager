@@ -1,0 +1,15 @@
+server {
+  listen 80;
+  server_name ${SSL_DOMAIN_1} ${SSL_DOMAIN_2};
+  # server_name ${SSL_DOMAIN_1} ${SSL_DOMAIN_2}; # Descomentar si se usa un segundo dominio
+
+  # Ubicación para validación de certificados SSL
+  location /.well-known/acme-challenge/ {
+    root /var/www/html;
+    try_files $uri =404;
+  }
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+}

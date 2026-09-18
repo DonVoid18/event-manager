@@ -1,0 +1,33 @@
+name: Validación
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.14.0
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - run: pnpm lint
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm build
+      - name: Verificar despliegue
+        run: |
+          python3 -m unittest discover -s scripts/deploy -p 'test_*.py' -v
+          bash -n deploy.sh renew-certs.sh
+          shellcheck deploy.sh renew-certs.sh
+          cp .env.example .env
+          docker compose -f compose.prod.yml config --quiet
+          docker compose -f compose.cert.yml config --quiet
+          docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.7 -shellcheck=

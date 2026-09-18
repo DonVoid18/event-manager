@@ -1,0 +1,24 @@
+{
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, tsconfig.json, .eslintrc.json, .hintrc, esbuild.config.mjs",
+    "next.config.js": "next-env.d.ts, turbo.json",
+    "Dockerfile": "compose.prod.yml, compose.dev.yml, .dockerignore, *.dockerfile, entrypoint.sh, compose.cert.yml",
+    "*.css": "*.css.map",
+    ".env": ".env.example"
+  },
+  "material-icon-theme.files.associations": {
+    "compose.cert.yml": "docker",
+  },
+  "explorer.autoRevealExclude": {
+    "**/node_modules": true,
+    "**/build": true,
+    "**/vendor": true,
+    "**/migrations": true
+  },
+  "editor.tabSize": 2,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.eslint": "explicit"
+  }
+}

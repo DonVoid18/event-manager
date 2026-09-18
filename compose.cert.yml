@@ -1,0 +1,16 @@
+# Comparte los volúmenes del proyecto; Nginx activo atiende los desafíos ACME.
+services:
+  certbot:
+    logging:
+      driver: local
+      options:
+        max-size: "20m"
+        max-file: "5"
+        compress: "true"
+    image: certbot/certbot:v4.0.0
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-webroot:/var/www/html
+volumes:
+  certbot-etc:
+  certbot-webroot:
