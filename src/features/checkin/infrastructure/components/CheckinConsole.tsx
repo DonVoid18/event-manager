@@ -121,7 +121,7 @@ export function CheckinConsole({ eventos }: CheckinConsoleProps) {
             </div>
             <div className="flex items-center gap-2">
               {attendee.checkedIn ? (
-                <Badge variant="default">
+                <Badge variant="success">
                   <CheckCircle2 className="mr-1 size-3" />
                   Ingreso registrado
                 </Badge>

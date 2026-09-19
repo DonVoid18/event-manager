@@ -8,7 +8,7 @@ import { Incidencia } from "@/features/incidencias/domain/Incidencia"
 import { CreateIncidenciaDialog } from "@/features/incidencias/infrastructure/components/dialogs/CreateIncidenciaDialog"
 import { IncidenciaTable } from "@/features/incidencias/infrastructure/components/tables/IncidenciaTable"
 import { Badge } from "@/shared/infrastructure/shadcn/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/infrastructure/shadcn/components/ui/card"
+import { StatCard } from "@/shared/infrastructure/shadcn/components/stat-card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/infrastructure/shadcn/components/ui/tabs"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -62,38 +62,30 @@ export function EventoDetailPage({ evento, asistentes: initialAsistentes, incide
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Fecha</CardTitle>
-            <CalendarDays className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="text-lg font-semibold">
-            {format(new Date(evento.eventDate), "dd MMM yyyy, HH:mm", { locale: es })}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Aforo</CardTitle>
-            <Users className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="text-lg font-semibold">
-            {asistentes.length} / {evento.capacity}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Check-ins</CardTitle>
-            <ScanLine className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="text-lg font-semibold">{confirmadas}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Incidencias</CardTitle>
-            <Ticket className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="text-lg font-semibold">{incidencias.length}</CardContent>
-        </Card>
+        <StatCard
+          label="Fecha"
+          value={format(new Date(evento.eventDate), "dd MMM yyyy, HH:mm", { locale: es })}
+          icon={<CalendarDays className="size-5" />}
+          color="info"
+        />
+        <StatCard
+          label="Aforo"
+          value={`${asistentes.length} / ${evento.capacity}`}
+          icon={<Users className="size-5" />}
+          color="primary"
+        />
+        <StatCard
+          label="Check-ins"
+          value={confirmadas}
+          icon={<ScanLine className="size-5" />}
+          color="success"
+        />
+        <StatCard
+          label="Incidencias"
+          value={incidencias.length}
+          icon={<Ticket className="size-5" />}
+          color="warning"
+        />
       </div>
 
       <Tabs defaultValue="asistentes">

@@ -5,15 +5,54 @@ import { auth } from "@/shared/infrastructure/libs/auth";
 import { prisma } from "@/shared/infrastructure/libs/prisma";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/infrastructure/shadcn/components/ui/card";
+import { StatCard } from "@/shared/infrastructure/shadcn/components/stat-card";
 import { Button } from "@/shared/infrastructure/shadcn/components/ui/button";
+import { cn } from "@/shared/infrastructure/shadcn/lib/utils";
 
 export const revalidate = 0;
+
+const quickLinks = [
+  {
+    title: "Eventos",
+    description: "Registra eventos, gestiona asistentes e invitaciones.",
+    href: "/eventos",
+    icon: CalendarDays,
+    color: "bg-primary/10 text-primary",
+  },
+  {
+    title: "Check-in",
+    description: "Registra el ingreso de los asistentes el día del evento.",
+    href: "/checkin",
+    icon: ScanLine,
+    color: "bg-success/10 text-success",
+  },
+  {
+    title: "Reportes",
+    description: "Consulta y exporta el registro, invitaciones y check-in.",
+    href: "/reportes",
+    icon: FileBarChart,
+    color: "bg-warning/10 text-warning",
+  },
+  {
+    title: "Productos",
+    description: "Administra el catálogo: crea, edita y elimina productos.",
+    href: "/productos",
+    icon: Package,
+    color: "bg-info/10 text-info",
+  },
+  {
+    title: "Mi perfil",
+    description: "Actualiza tu información personal y tu contraseña.",
+    href: "/perfil",
+    icon: UserIcon,
+    color: "bg-muted text-muted-foreground",
+  },
+] as const;
 
 export default async function Home() {
   const session = await auth();
@@ -35,121 +74,32 @@ export default async function Home() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardDescription>Eventos registrados</CardDescription>
-            <CardTitle className="text-3xl">{totalEventos}</CardTitle>
-            <CardAction>
-              <CalendarDays className="size-5 text-muted-foreground" />
-            </CardAction>
-          </CardHeader>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Eventos registrados" value={totalEventos} icon={<CalendarDays className="size-5" />} color="primary" />
+        <StatCard label="Asistentes registrados" value={totalAsistentes} icon={<UserIcon className="size-5" />} color="info" />
+        <StatCard label="Check-ins realizados" value={totalCheckins} icon={<ScanLine className="size-5" />} color="success" />
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardDescription>Asistentes registrados</CardDescription>
-            <CardTitle className="text-3xl">{totalAsistentes}</CardTitle>
-            <CardAction>
-              <UserIcon className="size-5 text-muted-foreground" />
-            </CardAction>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>Check-ins realizados</CardDescription>
-            <CardTitle className="text-3xl">{totalCheckins}</CardTitle>
-            <CardAction>
-              <ScanLine className="size-5 text-muted-foreground" />
-            </CardAction>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Eventos</CardTitle>
-            <CardDescription>
-              Registra eventos, gestiona asistentes e invitaciones.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/eventos">
-                <CalendarDays className="size-4" />
-                Ir a Eventos
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Check-in</CardTitle>
-            <CardDescription>
-              Registra el ingreso de los asistentes el día del evento.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/checkin">
-                <ScanLine className="size-4" />
-                Ir a Check-in
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Reportes</CardTitle>
-            <CardDescription>
-              Consulta y exporta el registro, invitaciones y check-in.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/reportes">
-                <FileBarChart className="size-4" />
-                Ir a Reportes
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Productos</CardTitle>
-            <CardDescription>
-              Administra el catálogo: crea, edita y elimina productos.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/productos">
-                <Package className="size-4" />
-                Ir a Productos
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Mi perfil</CardTitle>
-            <CardDescription>
-              Actualiza tu información personal y tu contraseña.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/perfil">
-                <UserIcon className="size-4" />
-                Ir a Perfil
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Accesos rápidos</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {quickLinks.map((link) => (
+            <Card key={link.href}>
+              <CardHeader>
+                <div className={cn("mb-2 flex size-10 items-center justify-center rounded-lg", link.color)}>
+                  <link.icon className="size-5" />
+                </div>
+                <CardTitle>{link.title}</CardTitle>
+                <CardDescription>{link.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href={link.href}>Ir a {link.title}</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

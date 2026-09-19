@@ -16,8 +16,9 @@ async function main() {
   }
 }
 main()
-  .catch(() => {
+  .catch((error) => {
     console.error("Falló el seed. Revisa su configuración y el acceso a la base de datos.");
+    console.error(error);
     process.exitCode = 1;
   })
   .finally(async () => { await prisma.$disconnect(); });

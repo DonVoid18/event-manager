@@ -101,7 +101,7 @@ const columns: ColumnDef<EventoConMetricas>[] = [
     cell: ({ row }) => {
       const estado = getEstado(row.original.eventDate)
       return (
-        <Badge variant={estado === "proximo" ? "outline" : "secondary"}>
+        <Badge variant={estado === "proximo" ? "info" : "secondary"}>
           {estado === "proximo" ? "Próximo" : "Finalizado"}
         </Badge>
       )
