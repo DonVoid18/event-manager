@@ -51,10 +51,10 @@ export default async function MainLayout({
         }}
         role={user.role}
       />
-      <SidebarInset className="app-canvas h-svh overflow-hidden">
+      <SidebarInset className="app-canvas h-svh min-w-0 overflow-hidden">
         <AppHeader />
-        <div id="app-scroll" className="flex flex-1 flex-col overflow-y-auto">
-          <div className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-7 p-4 md:p-8 lg:p-10">
+        <div id="app-scroll" className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+          <div className="flex w-full min-w-0 flex-1 flex-col gap-7 p-4 md:p-8 lg:p-10">
             {children}
           </div>
         </div>
