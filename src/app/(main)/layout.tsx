@@ -42,7 +42,7 @@ export default async function MainLayout({
   }
 
   return (
-    <SidebarProvider style={{ "--sidebar-width": "18rem" } as React.CSSProperties}>
+    <SidebarProvider style={{ "--sidebar-width": "18rem", "--sidebar-width-icon": "4rem" } as React.CSSProperties}>
       <AppSidebar
         user={{
           name: user.name ?? "",

@@ -20,7 +20,7 @@ export interface NavItem {
 
 export function NavMain({ label, items }: { label: string; items: NavItem[] }) {
   return (
-    <SidebarGroup>
+    <SidebarGroup className="group-data-[collapsible=icon]:px-0">
       <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
         {label}
       </SidebarGroupLabel>
@@ -32,7 +32,7 @@ export function NavMain({ label, items }: { label: string; items: NavItem[] }) {
               size="lg"
               isActive={item.isActive}
               tooltip={item.title}
-              className="h-14 gap-3 rounded-xl px-3 transition-colors hover:bg-sidebar-accent/80 data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-[0_8px_20px_-10px_rgba(0,0,0,0.45)] [&>svg]:size-5"
+              className="h-14 gap-3 rounded-xl px-3 transition-colors group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/80 data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-[0_8px_20px_-10px_rgba(0,0,0,0.45)] [&>svg]:size-5"
             >
               <Link href={item.url}>
                 {item.icon}

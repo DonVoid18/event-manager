@@ -46,7 +46,7 @@ export function NavUser({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex h-14 w-full min-w-0 items-center gap-3 overflow-hidden rounded-xl border border-sidebar-border bg-sidebar-accent/60 p-2.5 text-left text-sidebar-accent-foreground shadow-xs transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-ring group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-0!"
+          className="flex h-14 w-full min-w-0 items-center gap-3 overflow-hidden rounded-xl border border-sidebar-border bg-sidebar-accent/60 p-2.5 text-left text-sidebar-accent-foreground shadow-xs transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-ring group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!"
         >
           <Avatar className="h-9 w-9 shrink-0 rounded-full border border-sidebar-border shadow-sm">
             <AvatarImage src={user.avatar} alt={user.name} />
