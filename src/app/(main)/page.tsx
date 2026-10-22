@@ -109,7 +109,7 @@ export default async function Home() {
       href: "/eventos",
       cta: "Gestionar eventos",
       icon: UserPlus,
-      accent: "from-sky-500 to-sky-700",
+      accent: "from-teal-700 to-cyan-800",
     },
     {
       step: "02",
@@ -122,7 +122,7 @@ export default async function Home() {
       href: "/eventos",
       cta: "Revisar invitaciones",
       icon: Send,
-      accent: "from-emerald-500 to-emerald-700",
+      accent: "from-emerald-700 to-teal-800",
     },
     {
       step: "03",
@@ -135,14 +135,15 @@ export default async function Home() {
       href: "/checkin",
       cta: "Abrir control de acceso",
       icon: ScanLine,
-      accent: "from-violet-500 to-violet-700",
+      accent: "from-slate-700 to-slate-900",
     },
   ];
 
   return (
     <div className="space-y-8">
       {/* Bienvenida */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-700 via-sky-800 to-slate-900 p-8 text-white shadow-lg md:p-10">
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#123745] via-[#0d5360] to-[#102b3a] p-8 text-white shadow-[0_24px_55px_-30px_rgba(12,55,69,0.75)] md:p-10">
+        <div className="absolute -right-16 -top-24 size-80 rounded-full bg-teal-200/10 blur-3xl" />
         <div
           className="absolute inset-0 opacity-20"
           style={{
@@ -163,7 +164,7 @@ export default async function Home() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg" className="h-12 bg-white px-6 text-base text-sky-800 hover:bg-white/90">
+            <Button asChild size="lg" className="h-12 bg-white px-6 text-base text-teal-900 hover:bg-white/90">
               <Link href="/eventos?nuevo=1">
                 <CalendarPlus className="size-5" />
                 Crear evento

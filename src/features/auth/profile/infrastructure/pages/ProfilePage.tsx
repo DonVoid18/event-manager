@@ -203,7 +203,7 @@ export function ProfilePage() {
       {/* Banner & Profile Header Card */}
       <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-xl bg-card">
         {/* Banner */}
-        <div className="h-32 md:h-44 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 dark:from-violet-850 dark:via-indigo-850 dark:to-blue-850 relative">
+        <div className="relative h-32 bg-gradient-to-r from-[#123745] via-[#0d6675] to-[#16837e] md:h-44">
           <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
         </div>
         {/* Profile Header Contents */}
@@ -459,9 +459,9 @@ export function ProfilePage() {
                   {/* Tab 2: Security Settings */}
                   <TabsContent value="security" className="w-full space-y-5 outline-none m-0 focus:outline-none focus-visible:outline-none">
                     {!hasPassword && (
-                      <div className="bg-violet-500/5 rounded-xl border border-violet-500/15 p-4 mb-2">
-                        <p className="text-xs text-violet-600 dark:text-violet-400 leading-relaxed flex gap-2 font-medium">
-                          <Key className="h-4 w-4 shrink-0 mt-0.5 text-violet-500" />
+                      <div className="mb-2 rounded-xl border border-teal-500/20 bg-teal-500/5 p-4">
+                        <p className="flex gap-2 text-xs font-medium leading-relaxed text-teal-700 dark:text-teal-300">
+                          <Key className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
                           <span>
                             Esta cuenta aún no tiene contraseña. Configura una para iniciar sesión con tu correo electrónico.
                           </span>

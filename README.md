@@ -19,7 +19,9 @@ Configura un `NEXTAUTH_SECRET` aleatorio y confirma que `DATABASE_URL` apunta a 
 
 ## Acceso privado
 
-El inicio de sesión admite únicamente correo y contraseña. No hay registro público ni proveedores OAuth. Un administrador crea las cuentas adicionales desde `/usuarios` y les asigna el rol correspondiente. Para una instalación nueva, crea primero una cuenta administradora mediante un procedimiento seguro de aprovisionamiento; no ejecutes el seed de datos de demostración en producción. Entrega la contraseña inicial por un canal privado y cámbiala después del primer acceso.
+El inicio de sesión admite únicamente correo y contraseña. No hay registro público ni proveedores OAuth. Un administrador crea las cuentas adicionales desde `/usuarios` y les asigna el rol correspondiente. Para una instalación nueva, crea primero una cuenta administradora mediante un procedimiento seguro de aprovisionamiento. Carga datos de demostración en producción solo cuando se solicite expresamente. Entrega la contraseña inicial por un canal privado y cámbiala después del primer acceso.
+
+Para cargar únicamente los eventos y sus datos de ejemplo en una base autorizada, ejecuta `pnpm db:seed:demo` después de confirmar `DATABASE_URL`. El comando no crea usuarios, no modifica eventos existentes y aplica la carga completa dentro de una transacción. `pnpm db:seed` conserva el seed de desarrollo que también aprovisiona el usuario inicial.
 
 ## Verificación
 

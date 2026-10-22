@@ -50,7 +50,7 @@ export function NavUser({
         >
           <Avatar className="h-9 w-9 shrink-0 rounded-full border border-sidebar-border shadow-sm">
             <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback className="rounded-full bg-sky-600 text-white text-sm font-semibold">
+            <AvatarFallback className="rounded-full bg-teal-700 text-white text-sm font-semibold">
               {user.name ? user.name.slice(0, 2).toUpperCase() : "US"}
             </AvatarFallback>
           </Avatar>

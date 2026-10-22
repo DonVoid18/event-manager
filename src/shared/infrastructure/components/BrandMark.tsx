@@ -13,7 +13,7 @@ interface BrandMarkProps {
 export function BrandMark({ className, compact = false, tone = "light" }: BrandMarkProps) {
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-sky-700 text-white shadow-md shadow-sky-900/20">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 via-cyan-700 to-slate-800 text-white shadow-md shadow-teal-950/20">
         <CalendarCheck2 className="size-5" />
       </div>
       {!compact && (

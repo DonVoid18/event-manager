@@ -63,7 +63,7 @@ export function EventoDetailPage({ evento, asistentes: initialAsistentes, incide
   return (
     <div className="space-y-6">
       <Card className="gap-0 overflow-hidden p-0 shadow-sm">
-        <div className="bg-gradient-to-r from-sky-700 to-slate-900 p-6 text-white md:p-8">
+        <div className="bg-gradient-to-r from-[#0d5360] to-[#102b3a] p-6 text-white md:p-8">
           <Link href="/eventos" className="mb-4 inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white">
             <ArrowLeft className="size-4" /> Volver a eventos
           </Link>
@@ -83,7 +83,7 @@ export function EventoDetailPage({ evento, asistentes: initialAsistentes, incide
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button size="lg" className="h-12 bg-white px-5 text-base text-sky-800 hover:bg-white/90" onClick={() => setAddAsistenteOpen(true)}>
+              <Button size="lg" className="h-12 bg-white px-5 text-base text-teal-900 hover:bg-white/90" onClick={() => setAddAsistenteOpen(true)}>
                 <UserPlus className="size-5" />
                 Registrar asistente
               </Button>

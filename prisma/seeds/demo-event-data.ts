@@ -1,14 +1,10 @@
 import { randomBytes } from "node:crypto";
 import type { PrismaClient } from "@prisma/client";
-import { passwordEncrypt } from "../../src/shared/infrastructure/libs/password";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 function randomCode(prefix: string, length = 6) {
-  let segment = "";
-  for (let i = 0; i < length; i++) {
-    segment += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
-  }
+  const segment = Array.from(randomBytes(length), (value) => CODE_ALPHABET[value % CODE_ALPHABET.length]).join("");
   return `${prefix}-${segment}`;
 }
 
@@ -101,103 +97,84 @@ const eventPlans: EventPlan[] = [
   },
 ];
 
-const demoCollaborator = {
-  name: "Colaborador Demo",
-  email: "colaborador.demo@tumitech.example.com",
-};
-
 export async function seedDemoEventData(prisma: PrismaClient) {
-  const existingEvents = await prisma.event.count();
-  if (existingEvents > 0) {
-    console.log("Ya existen eventos registrados; se omite la carga de datos de ejemplo.");
-    return;
-  }
+  await prisma.$transaction(async (tx) => {
+    const existingEvents = await tx.event.count();
+    if (existingEvents > 0) {
+      console.log("Ya existen eventos registrados; se omite la carga de datos de ejemplo.");
+      return;
+    }
 
-  for (const plan of eventPlans) {
-    const event = await prisma.event.create({
-      data: {
-        code: randomCode("EVT"),
-        name: plan.name,
-        eventDate: plan.eventDate,
-        type: plan.type,
-        capacity: plan.capacity,
-      },
-    });
-
-    const createdAttendees = [];
-
-    for (const attendeePlan of plan.attendees) {
-      const attendee = await prisma.attendee.create({
+    for (const plan of eventPlans) {
+      const event = await tx.event.create({
         data: {
-          eventId: event.id,
-          firstName: attendeePlan.firstName,
-          lastName: attendeePlan.lastName,
-          documentId: attendeePlan.documentId,
-          email: attendeePlan.email,
-          phone: attendeePlan.phone,
-          paymentAmount: attendeePlan.paymentAmount ?? null,
-          paymentReference: attendeePlan.paymentReference ?? null,
+          code: randomCode("EVT"),
+          name: plan.name,
+          eventDate: plan.eventDate,
+          type: plan.type,
+          capacity: plan.capacity,
         },
       });
-      createdAttendees.push(attendee);
 
-      if (attendeePlan.invitation !== "SIN_INVITACION") {
-        const invitation = await prisma.invitation.create({
+      const createdAttendees = [];
+
+      for (const attendeePlan of plan.attendees) {
+        const attendee = await tx.attendee.create({
           data: {
-            attendeeId: attendee.id,
-            code: randomCode("INV", 8),
-            status: attendeePlan.invitation,
-            sentAt: attendeePlan.invitation !== "PENDIENTE" ? new Date() : null,
+            eventId: event.id,
+            firstName: attendeePlan.firstName,
+            lastName: attendeePlan.lastName,
+            documentId: attendeePlan.documentId,
+            email: attendeePlan.email,
+            phone: attendeePlan.phone,
+            paymentAmount: attendeePlan.paymentAmount ?? null,
+            paymentReference: attendeePlan.paymentReference ?? null,
           },
         });
+        createdAttendees.push(attendee);
 
-        if (attendeePlan.invitation === "ENVIADA" || attendeePlan.invitation === "CONFIRMADA") {
-          await prisma.invitationStatusHistory.create({
-            data: { invitationId: invitation.id, status: "ENVIADA" },
+        if (attendeePlan.invitation !== "SIN_INVITACION") {
+          const invitation = await tx.invitation.create({
+            data: {
+              attendeeId: attendee.id,
+              code: randomCode("INV", 8),
+              status: attendeePlan.invitation,
+              sentAt: attendeePlan.invitation !== "PENDIENTE" ? new Date() : null,
+            },
           });
+
+          if (attendeePlan.invitation === "ENVIADA" || attendeePlan.invitation === "CONFIRMADA") {
+            await tx.invitationStatusHistory.create({
+              data: { invitationId: invitation.id, status: "ENVIADA" },
+            });
+          }
+          if (attendeePlan.invitation === "CONFIRMADA") {
+            await tx.invitationStatusHistory.create({
+              data: { invitationId: invitation.id, status: "CONFIRMADA" },
+            });
+          }
         }
-        if (attendeePlan.invitation === "CONFIRMADA") {
-          await prisma.invitationStatusHistory.create({
-            data: { invitationId: invitation.id, status: "CONFIRMADA" },
-          });
+
+        if (attendeePlan.checkedIn) {
+          await tx.checkIn.create({ data: { attendeeId: attendee.id } });
         }
       }
 
-      if (attendeePlan.checkedIn) {
-        await prisma.checkIn.create({ data: { attendeeId: attendee.id } });
+      for (const incidentPlan of plan.incidents) {
+        await tx.incident.create({
+          data: {
+            eventId: event.id,
+            attendeeId:
+              incidentPlan.attendeeIndex !== undefined
+                ? createdAttendees[incidentPlan.attendeeIndex]?.id ?? null
+                : null,
+            description: incidentPlan.description,
+            category: incidentPlan.category,
+          },
+        });
       }
+
+      console.log(`Evento de ejemplo creado: ${event.name} (${event.code})`);
     }
-
-    for (const incidentPlan of plan.incidents) {
-      await prisma.incident.create({
-        data: {
-          eventId: event.id,
-          attendeeId:
-            incidentPlan.attendeeIndex !== undefined
-              ? createdAttendees[incidentPlan.attendeeIndex]?.id ?? null
-              : null,
-          description: incidentPlan.description,
-          category: incidentPlan.category,
-        },
-      });
-    }
-
-    console.log(`Evento de ejemplo creado: ${event.name} (${event.code})`);
-  }
-
-  const existingCollaborator = await prisma.user.findUnique({ where: { email: demoCollaborator.email } });
-  if (!existingCollaborator) {
-    const password = randomBytes(24).toString("base64url");
-    const hashedPassword = await passwordEncrypt(password);
-    await prisma.user.create({
-      data: {
-        name: demoCollaborator.name,
-        email: demoCollaborator.email,
-        password: hashedPassword,
-        role: "COLABORADOR",
-        emailVerified: new Date(),
-      },
-    });
-    console.log(`Usuario colaborador de ejemplo: ${demoCollaborator.email} / contraseña: ${password}`);
-  }
+  }, { timeout: 30_000 });
 }

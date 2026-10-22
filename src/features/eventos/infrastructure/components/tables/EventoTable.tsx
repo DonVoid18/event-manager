@@ -60,7 +60,7 @@ interface TableCallbacks {
 }
 
 const STATUS_STYLES: Record<EventStatus, string> = {
-  PROXIMO: "border-sky-200 bg-sky-50 text-sky-700",
+  PROXIMO: "border-teal-200 bg-teal-50 text-teal-800 dark:border-teal-400/30 dark:bg-teal-400/10 dark:text-teal-200",
   HOY: "border-amber-200 bg-amber-50 text-amber-700",
   FINALIZADO: "border-slate-200 bg-slate-100 text-slate-600",
 }

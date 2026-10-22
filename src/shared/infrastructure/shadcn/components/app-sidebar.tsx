@@ -99,11 +99,11 @@ export function AppSidebar({ user, role, ...props }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="px-4 pb-2 pt-5 group-data-[collapsible=icon]:px-2">
+      <SidebarHeader className="border-b border-sidebar-border/70 px-4 pb-5 pt-6 group-data-[collapsible=icon]:px-2">
         <BrandMark tone="dark" className="group-data-[collapsible=icon]:hidden" />
         <BrandMark tone="dark" compact className="hidden group-data-[collapsible=icon]:flex" />
       </SidebarHeader>
-      <SidebarContent className="gap-2 px-2 py-2">
+      <SidebarContent className="gap-3 px-2 py-4">
         <NavMain label="Operación" items={operacion} />
         <NavMain label="Análisis" items={analisis} />
         <NavMain label="Administración" items={administracion} />

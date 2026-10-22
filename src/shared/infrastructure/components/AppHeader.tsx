@@ -25,16 +25,16 @@ export function AppHeader() {
   const today = rawToday.charAt(0).toUpperCase() + rawToday.slice(1)
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b bg-card/90 px-4 backdrop-blur md:px-8">
+    <header className="sticky top-0 z-20 flex h-[4.5rem] shrink-0 items-center gap-3 border-b border-border/80 bg-card/95 px-4 shadow-[0_1px_12px_rgba(18,43,56,0.03)] backdrop-blur md:px-8 lg:px-10">
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mr-1 h-6" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-base font-semibold leading-tight">{section?.title ?? "TUMITECH"}</p>
+        <p className="truncate text-base font-bold tracking-tight leading-tight">{section?.title ?? "TUMITECH"}</p>
         {section && (
           <p className="hidden truncate text-xs text-muted-foreground sm:block">{section.subtitle}</p>
         )}
       </div>
-      <div className="hidden items-center gap-2 rounded-lg border bg-background px-3 py-1.5 text-sm text-muted-foreground lg:flex">
+      <div className="hidden items-center gap-2 rounded-full border border-border bg-secondary/70 px-3.5 py-2 text-xs font-medium text-secondary-foreground lg:flex">
         <CalendarDays className="size-4" />
         <span>{today}</span>
       </div>
