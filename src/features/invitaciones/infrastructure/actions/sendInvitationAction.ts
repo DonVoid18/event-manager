@@ -26,6 +26,10 @@ export const sendInvitationAction = async (attendeeId: string) => {
       return { success: false, message: "El asistente no existe" };
     }
 
+    if (attendee.email.toLowerCase().endsWith("@example.invalid")) {
+      return { success: false, message: "No se envían correos a los asistentes de demostración" };
+    }
+
     let invitation = attendee.invitation;
     if (!invitation) {
       const code = await generateUniqueInvitationCode();
