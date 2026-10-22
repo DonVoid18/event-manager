@@ -16,6 +16,7 @@ const themes = [
   "Capacitación de herramientas digitales",
   "Encuentro de comunidad tecnológica",
 ];
+const locations = ["Huánuco", "Amarilis", "Pillco Marca", "Tingo María", "Churubamba"];
 
 function distribute(total: number, weights: number[]) {
   const weightTotal = weights.reduce((sum, weight) => sum + weight, 0);
@@ -53,11 +54,11 @@ export function buildResearchDemoPlan(): ResearchDemoEventPlan[] {
   const end = Date.UTC(2026, 8, 9, 15);
 
   return Array.from({ length: EVENT_COUNT }, (_, index) => {
-    const number = String(index + 1).padStart(2, "0");
+    const number = String(index + 1).padStart(3, "0");
     const type = index % 4 === 2 ? "PAGO" : "GRATUITO";
     return {
-      code: `DEMO-E${number}`,
-      name: `${themes[index % themes.length]} (DEMO E${number})`,
+      code: `EVT-2026-${number}`,
+      name: `${themes[index % themes.length]} en ${locations[Math.floor(index / themes.length)]}`,
       date: new Date(start + Math.round((end - start) * index / (EVENT_COUNT - 1)) + (index % 4) * 3_600_000),
       type,
       capacity: attendeeCounts[index] + 10 + (index * 3) % 26,

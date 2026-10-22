@@ -26,8 +26,11 @@ export const sendInvitationAction = async (attendeeId: string) => {
       return { success: false, message: "El asistente no existe" };
     }
 
-    if (attendee.email.toLowerCase().endsWith("@example.invalid")) {
-      return { success: false, message: "No se envían correos a los asistentes de demostración" };
+    if (
+      attendee.email.toLowerCase().endsWith("@example.invalid") ||
+      attendee.email.toLowerCase().endsWith("@invitados.eventos.tumitechplus.com")
+    ) {
+      return { success: false, message: "No se puede enviar una invitación a esta dirección de correo" };
     }
 
     let invitation = attendee.invitation;

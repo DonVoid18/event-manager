@@ -10,7 +10,7 @@ async function main() {
   if (!process.argv.includes("--apply")) {
     console.log("Plan de demostración: 50 eventos variados, 3948 asistentes, 3384 invitaciones enviadas, 180 pendientes y 3291 ingresos.");
     console.log(`Eventos de pago: ${plans.filter((plan) => plan.type === "PAGO").length}. Asistentes por evento: ${Math.min(...plans.map((plan) => plan.attendees))}–${Math.max(...plans.map((plan) => plan.attendees))}.`);
-    console.log("Periodo: 09/01/2026 al 09/09/2026. Todos los registros llevarán identificadores DEMO.");
+    console.log("Periodo: 09/01/2026 al 09/09/2026. Los identificadores visibles siguen los formatos EVT-2026 e INV-2026.");
     console.log("Para aplicarlo a una base autorizada y respaldada, ejecuta con --apply.");
     return;
   }
@@ -27,6 +27,11 @@ async function main() {
 
   const firstNames = ["Ariana", "Bruno", "Camila", "Diego", "Elena", "Fabio", "Gabriela", "Hugo", "Irene", "Javier", "Karen", "Luis", "Mariana", "Nicolás", "Olivia", "Pablo", "Rocío", "Sergio", "Tatiana", "Víctor"];
   const lastNames = ["Salazar", "Quispe", "Vargas", "Rojas", "Flores", "Mendoza", "Castro", "Torres", "Paredes", "Chávez", "Ortega", "Núñez", "Ramírez", "Huamán", "Delgado"];
+  const attendeeDocument = (eventIndex: number, attendeeIndex: number) =>
+    String(90_000_000 + eventIndex * 1000 + attendeeIndex + 1);
+  const attendeeCode = (eventIndex: number, attendeeIndex: number) =>
+    `${String(eventIndex + 1).padStart(3, "0")}-${String(attendeeIndex + 1).padStart(3, "0")}`;
+  const emailPart = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   const chunk = <T,>(items: T[], size = 500) =>
     Array.from({ length: Math.ceil(items.length / size) }, (_, index) => items.slice(index * size, (index + 1) * size));
@@ -87,7 +92,26 @@ async function main() {
         }) && attendeeCount === 3948 && oldAttendeeCount === 3948 && invitationCount === 3384 &&
         sentCount === 3384 && confirmedCount === 3291 && pendingCount === 0 &&
         checkInCount === 3291 && incidentCount === 0 && historyCount === 6675;
-      if (!expectedOriginal && !expectedPreviousDemo) {
+      const variedAttendeeCount = await tx.attendee.count({
+        where: {
+          lastName: { startsWith: "Demo " },
+          documentId: { startsWith: "DEMO-E" },
+          email: { endsWith: "@example.invalid" },
+        },
+      });
+      const expectedPreviousVaried = events.length === plans.length &&
+        events.every((event) => {
+          const index = Number(event.code.slice(-2)) - 1;
+          const plan = plans[index];
+          return Number.isInteger(index) && index >= 0 && index < plans.length &&
+            event.code === `DEMO-E${String(index + 1).padStart(2, "0")}` &&
+            event.name.endsWith(`(DEMO E${String(index + 1).padStart(2, "0")})`) &&
+            event.type === plan.type && event.capacity === plan.capacity &&
+            event.eventDate.getTime() === plan.date.getTime() && event._count.attendees === plan.attendees;
+        }) && attendeeCount === 3948 && variedAttendeeCount === 3948 &&
+        invitationCount === 3564 && sentCount === 3384 && confirmedCount === 3291 &&
+        pendingCount === 180 && checkInCount === 3291 && incidentCount === 0 && historyCount === 6855;
+      if (!expectedOriginal && !expectedPreviousDemo && !expectedPreviousVaried) {
         throw new Error("La base contiene datos distintos a los ejemplos DEMO esperados. No se reemplazó nada.");
       }
 
@@ -111,16 +135,19 @@ async function main() {
         const eventId = eventIds.get(plan.code);
         if (!eventId) throw new Error(`Falta el evento ${plan.code}.`);
         return Array.from({ length: plan.attendees }, (_, index) => {
-          const number = String(index + 1).padStart(3, "0");
-          const key = `${plan.code}-${number}`;
+          const firstName = firstNames[(eventIndex * 7 + index * 3) % firstNames.length];
+          const surname = lastNames[(eventIndex * 5 + index * 7) % lastNames.length];
+          const secondSurname = lastNames[(eventIndex * 3 + index * 11 + 2) % lastNames.length];
+          const documentId = attendeeDocument(eventIndex, index);
+          const code = attendeeCode(eventIndex, index);
           return {
             eventId,
-            firstName: firstNames[(eventIndex * 7 + index * 3) % firstNames.length],
-            lastName: `Demo ${lastNames[(eventIndex * 5 + index * 7) % lastNames.length]} ${number}`,
-            documentId: key,
-            email: `${key.toLowerCase()}@example.invalid`,
+            firstName,
+            lastName: `${surname} ${secondSurname === surname ? lastNames[(eventIndex + index + 1) % lastNames.length] : secondSurname}`,
+            documentId,
+            email: `${emailPart(firstName)}.${emailPart(surname)}.${code.replace("-", ".")}@invitados.eventos.tumitechplus.com`,
             paymentAmount: plan.paymentAmount,
-            paymentReference: plan.type === "PAGO" ? `DEMO-PAGO-${key}` : null,
+            paymentReference: plan.type === "PAGO" ? `OP-2026-${code}` : null,
             createdAt: new Date(plan.date.getTime() - 14 * 86_400_000),
           };
         });
@@ -134,14 +161,14 @@ async function main() {
       if (createdAttendees.length !== 3948) throw new Error("No se crearon todos los asistentes DEMO.");
       const attendeeIds = new Map(createdAttendees.map((attendee) => [attendee.documentId, attendee.id]));
 
-      const invitations = plans.flatMap((plan) =>
+      const invitations = plans.flatMap((plan, eventIndex) =>
         Array.from({ length: plan.sentInvitations + plan.pendingInvitations }, (_, index) => {
-          const key = `${plan.code}-${String(index + 1).padStart(3, "0")}`;
-          const attendeeId = attendeeIds.get(key);
-          if (!attendeeId) throw new Error(`Falta el asistente ${key}.`);
+          const documentId = attendeeDocument(eventIndex, index);
+          const attendeeId = attendeeIds.get(documentId);
+          if (!attendeeId) throw new Error(`Falta el asistente ${documentId}.`);
           return {
             attendeeId,
-            code: `INV-${key}`,
+            code: `INV-2026-${attendeeCode(eventIndex, index)}`,
             status: index >= plan.sentInvitations ? "PENDIENTE" as const :
               index < plan.checkIns ? "CONFIRMADA" as const : "ENVIADA" as const,
             sentAt: index < plan.sentInvitations ? new Date(plan.date.getTime() - 7 * 86_400_000) : null,
@@ -152,7 +179,7 @@ async function main() {
       for (const batch of chunk(invitations)) await tx.invitation.createMany({ data: batch });
 
       const createdInvitations = await tx.invitation.findMany({
-        where: { code: { startsWith: "INV-DEMO-E" } },
+        where: { code: { startsWith: "INV-2026-" } },
         select: { id: true, code: true, status: true, sentAt: true, createdAt: true },
       });
       if (createdInvitations.length !== 3564) throw new Error("No se crearon todas las invitaciones DEMO.");
@@ -164,11 +191,11 @@ async function main() {
       ]);
       for (const batch of chunk(histories)) await tx.invitationStatusHistory.createMany({ data: batch });
 
-      const checkIns = plans.flatMap((plan) =>
+      const checkIns = plans.flatMap((plan, eventIndex) =>
         Array.from({ length: plan.checkIns }, (_, index) => {
-          const key = `${plan.code}-${String(index + 1).padStart(3, "0")}`;
-          const attendeeId = attendeeIds.get(key);
-          if (!attendeeId) throw new Error(`Falta el asistente ${key}.`);
+          const documentId = attendeeDocument(eventIndex, index);
+          const attendeeId = attendeeIds.get(documentId);
+          if (!attendeeId) throw new Error(`Falta el asistente ${documentId}.`);
           return { attendeeId, checkedInAt: new Date(plan.date.getTime() + (index % 120) * 60_000) };
         })
       );
