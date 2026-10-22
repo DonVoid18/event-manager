@@ -1,21 +1,15 @@
 "use client";
 
 import { Button } from "@/shared/infrastructure/shadcn/components/ui/button";
-import FooterExternalAuth from "@/shared/infrastructure/components/FooterExternalAuth";
 import {
     Field,
-    FieldDescription,
     FieldError,
     FieldGroup,
     FieldLabel,
-    FieldSeparator,
 } from "@/shared/infrastructure/shadcn/components/ui/field";
 import { Form, FormField } from "@/shared/infrastructure/shadcn/components/ui/form";
 import { Input } from "@/shared/infrastructure/shadcn/components/ui/input";
-import {
-    FORGOT_PASSWORD_ROUTE,
-    SIGN_UP_ROUTE,
-} from "@/shared/infrastructure/utils/routes";
+import { FORGOT_PASSWORD_ROUTE } from "@/shared/infrastructure/utils/routes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -55,11 +49,7 @@ export default function UserAuthForm() {
   };
 
   useEffect(() => {
-    if (error === "OAuthAccountNotLinked") {
-      setErrorMessage(
-        "Este correo ya está registrado. Inicia sesión con tu correo y contraseña."
-      );
-    } else if (error) {
+    if (error) {
       setErrorMessage("Hubo un problema al iniciar sesión.");
     }
   }, [error]);
@@ -150,17 +140,6 @@ export default function UserAuthForm() {
           <Button disabled={loading} className="w-full cursor-pointer" type="submit">
             {loading ? "Iniciando sesión..." : "Iniciar sesión"}
           </Button>
-
-          <FieldSeparator>O continuar con</FieldSeparator>
-
-          <FooterExternalAuth />
-
-          <FieldDescription className="text-center">
-            ¿No tienes una cuenta?{" "}
-            <a href={SIGN_UP_ROUTE} className="underline underline-offset-4">
-              Registrarme
-            </a>
-          </FieldDescription>
         </FieldGroup>
       </form>
     </Form>

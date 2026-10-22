@@ -463,7 +463,7 @@ export function ProfilePage() {
                         <p className="text-xs text-violet-600 dark:text-violet-400 leading-relaxed flex gap-2 font-medium">
                           <Key className="h-4 w-4 shrink-0 mt-0.5 text-violet-500" />
                           <span>
-                            Estás registrado con un proveedor OAuth externo (Google o GitHub). Si deseas habilitar el inicio de sesión directo con contraseña, puedes configurar tu nueva contraseña aquí.
+                            Esta cuenta aún no tiene contraseña. Configura una para iniciar sesión con tu correo electrónico.
                           </span>
                         </p>
                       </div>

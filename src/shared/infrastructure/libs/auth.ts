@@ -1,11 +1,10 @@
-import { MAIN_ROUTE, SIGN_IN_ROUTE, SIGN_UP_ROUTE } from "../utils/routes";
+import { MAIN_ROUTE, SIGN_IN_ROUTE } from "../utils/routes";
 
+import { randomBytes } from "node:crypto";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
 import { encode } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
-import GitHub from "next-auth/providers/github";
-import Google from "next-auth/providers/google";
 import { passwordIsValid } from "./password";
 import { prisma } from "./prisma";
 import { getLogger, sanitizeError } from "../logging/serverLogger";
@@ -39,8 +38,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   providers: [
-    GitHub,
-    Google,
     Credentials({
       credentials: {
         email: {
@@ -89,7 +86,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   jwt: {
     encode: async (params) => {
       if (params.token?.credentials) {
-        const sessionToken = Math.random().toString(36).substring(2);
+        const sessionToken = randomBytes(32).toString("base64url");
 
         if (!params.token.sub) {
           throw new Error("No user id found in token");
@@ -110,24 +107,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return encode(params);
     },
   },
-  events: {
-    async linkAccount({ account, user }) {
-      // Este evento se dispara cuando se vincula una cuenta OAuth
-      if (
-        (account.provider === "github" || account.provider === "google") &&
-        user.email
-      ) {
-        // Marcar el email como verificado
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { emailVerified: new Date() },
-        });
-      }
-    },
-  },
   pages: {
     signIn: SIGN_IN_ROUTE,
-    newUser: SIGN_UP_ROUTE,
     error: MAIN_ROUTE,
   },
 });

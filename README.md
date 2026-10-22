@@ -17,6 +17,10 @@ pnpm dev
 
 Configura un `NEXTAUTH_SECRET` aleatorio y confirma que `DATABASE_URL` apunta a esta base local antes de migrar. En el host usa `DB_HOST=127.0.0.1`; el servicio Docker expone `DB_PORT` solo al propio host. Los archivos privados quedan en `private` y se entregan por las rutas autenticadas.
 
+## Acceso privado
+
+El inicio de sesión admite únicamente correo y contraseña. No hay registro público ni proveedores OAuth. Un administrador crea las cuentas adicionales desde `/usuarios` y les asigna el rol correspondiente. Para una instalación nueva, crea primero una cuenta administradora mediante un procedimiento seguro de aprovisionamiento; no ejecutes el seed de datos de demostración en producción. Entrega la contraseña inicial por un canal privado y cámbiala después del primer acceso.
+
 ## Verificación
 
 ```powershell
