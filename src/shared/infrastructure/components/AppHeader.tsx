@@ -5,7 +5,6 @@ import { es } from "date-fns/locale"
 import { CalendarDays } from "lucide-react"
 import { usePathname } from "next/navigation"
 
-import { Separator } from "@/shared/infrastructure/shadcn/components/ui/separator"
 import { SidebarTrigger } from "@/shared/infrastructure/shadcn/components/ui/sidebar"
 
 const SECTIONS: { match: (path: string) => boolean; title: string; subtitle: string }[] = [
@@ -27,7 +26,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-20 flex h-[4.5rem] shrink-0 items-center gap-3 border-b border-border/80 bg-card/95 px-4 shadow-[0_1px_12px_rgba(18,43,56,0.03)] backdrop-blur md:px-8 lg:px-10">
       <SidebarTrigger className="-ml-1" />
-      <Separator orientation="vertical" className="mr-1 h-6" />
+      <span aria-hidden="true" className="mr-1 h-6 w-px shrink-0 self-center bg-border" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-base font-bold tracking-tight leading-tight">{section?.title ?? "TUMITECH"}</p>
         {section && (

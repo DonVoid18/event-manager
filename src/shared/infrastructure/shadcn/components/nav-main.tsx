@@ -36,7 +36,7 @@ export function NavMain({ label, items }: { label: string; items: NavItem[] }) {
             >
               <Link href={item.url}>
                 {item.icon}
-                <span className="grid flex-1 text-left leading-tight">
+                <span className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="text-[15px] font-semibold">{item.title}</span>
                   {item.description && (
                     <span className="truncate text-xs font-normal opacity-70">{item.description}</span>
