@@ -9,3 +9,4 @@ export const EVENTOS_ROUTE = "/eventos";
 export const CHECKIN_ROUTE = "/checkin";
 export const REPORTES_ROUTE = "/reportes";
 export const USUARIOS_ROUTE = "/usuarios";
+export const PERFIL_ROUTE = "/perfil";

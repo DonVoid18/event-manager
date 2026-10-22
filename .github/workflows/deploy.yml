@@ -1,42 +1,120 @@
-name: Desplegar imagen
+name: Desplegar standalone
+
 on:
   workflow_dispatch:
-    inputs:
-      image:
-        description: Imagen publicada, por ejemplo usuario/proyecto:version
-        required: true
-        type: string
+  push:
+    branches: [main]
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
 permissions:
   contents: read
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
+
 jobs:
-  deploy:
+  build:
     if: vars.DEPLOY_ENABLED == 'true' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.14.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - run: pnpm lint
+      - run: pnpm exec tsc --noEmit
+      - name: Compilar standalone
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          DATABASE_URL: postgresql://build:build@127.0.0.1:5432/build
+        run: pnpm build:standalone
+      - name: Empaquetar
+        run: tar -C .next/standalone -czf standalone-bundle.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: standalone-bundle
+          path: standalone-bundle.tar.gz
+          retention-days: 2
+
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    environment: production
     steps:
-      - name: Desplegar en el servidor
+      - uses: actions/download-artifact@v4
+        with:
+          name: standalone-bundle
+      - name: Validar configuración
         env:
-          IMAGE: ${{ inputs.image }}
-          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
-          SSH_USER: ${{ secrets.DEPLOY_USER }}
-          SSH_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
-          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-          APP_DIR: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
-          set -euo pipefail
-          [[ "$IMAGE" =~ ^[a-zA-Z0-9][a-zA-Z0-9./:@_-]*$ ]]
-          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
-          [[ "$SSH_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
-          [[ "$SSH_PORT" =~ ^[0-9]+$ && "$SSH_PORT" -gt 0 && "$SSH_PORT" -le 65535 ]]
-          [[ "$APP_DIR" =~ ^/[a-zA-Z0-9_/-]+$ && "$APP_DIR" != / ]]
-          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]]
-          umask 077
-          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/deploy-key"
-          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
-          trap 'rm -f "$RUNNER_TEMP/deploy-key"' EXIT
-          ssh -i "$RUNNER_TEMP/deploy-key" -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$RUNNER_TEMP/known_hosts" -o ConnectTimeout=15 "$SSH_USER@$SSH_HOST" "cd '$APP_DIR' && bash deploy.sh '$IMAGE'"
+          : "${DEPLOY_HOST:?Falta DEPLOY_HOST}"
+          : "${DEPLOY_USER:?Falta DEPLOY_USER}"
+          : "${DEPLOY_PATH:?Falta DEPLOY_PATH}"
+          : "${SSH_PRIVATE_KEY:?Falta SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Falta SSH_KNOWN_HOSTS}"
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
+          [[ "$DEPLOY_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$DEPLOY_PORT" =~ ^[0-9]+$ && "$DEPLOY_PORT" -gt 0 && "$DEPLOY_PORT" -le 65535 ]]
+          [[ "$DEPLOY_PATH" =~ ^/[a-zA-Z0-9_/-]+$ && "$DEPLOY_PATH" != / ]]
+      - name: Configurar SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+      - name: Transferir artefacto
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+        run: scp -i "$HOME/.ssh/deploy_key" -P "$DEPLOY_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes standalone-bundle.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:/tmp/event-manager-${GITHUB_SHA}.tar.gz"
+      - name: Publicar y reiniciar
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          ssh -i "$HOME/.ssh/deploy_key" -p "$DEPLOY_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$DEPLOY_PATH" "$GITHUB_SHA" <<'REMOTE'
+          set -Eeuo pipefail
+          deploy_path="$1"
+          release="$2"
+          test -f "$deploy_path/.env" || { echo "Falta $deploy_path/.env" >&2; exit 1; }
+          install -d -m 755 "$deploy_path/private"
+          tar -xzf "/tmp/event-manager-${release}.tar.gz" -C "$deploy_path"
+          rm -f "/tmp/event-manager-${release}.tar.gz"
+          cd "$deploy_path"
+          pnpm install --frozen-lockfile --prod=false
+          pnpm db:generate
+          pnpm db:migrate:deploy
+          pm2 startOrReload ecosystem.config.cjs --update-env
+          for attempt in {1..15}; do
+            if curl -fsS http://127.0.0.1:3000/api/health/ready >/dev/null; then
+              pm2 save
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "La aplicación no superó el healthcheck de readiness." >&2
+          exit 1
+          REMOTE

@@ -16,7 +16,10 @@ const page = async ({ params }: PageProps) => {
     include: {
       attendees: {
         orderBy: { createdAt: "desc" },
-        include: { invitation: true, checkIn: true },
+        include: {
+          invitation: { include: { history: { orderBy: { changedAt: "asc" } } } },
+          checkIn: true,
+        },
       },
       incidents: {
         orderBy: { occurredAt: "desc" },
@@ -57,6 +60,7 @@ const page = async ({ params }: PageProps) => {
             code: a.invitation.code,
             status: a.invitation.status,
             sentAt: a.invitation.sentAt,
+            history: a.invitation.history.map((h) => ({ status: h.status, changedAt: h.changedAt })),
           }
           : null,
         checkIn: a.checkIn ? { id: a.checkIn.id, checkedInAt: a.checkIn.checkedInAt } : null,

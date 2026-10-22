@@ -1,0 +1,17 @@
+[Unit]
+Description=Event Manager Next.js Standalone
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/var/www/event-manager
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node /var/www/event-manager/.next/standalone/server.js
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

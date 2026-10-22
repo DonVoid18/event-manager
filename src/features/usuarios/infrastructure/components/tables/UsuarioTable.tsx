@@ -44,7 +44,7 @@ export function UsuarioTable({ data, currentUserId, onEdit, onToggleActive, onOp
     <div className="w-full flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold">Usuarios y roles</h1>
+          <h2 className="text-lg font-semibold">Listado de usuarios</h2>
           <p className="text-sm text-muted-foreground">{data.length} usuario(s)</p>
         </div>
         <Button variant="default" onClick={onOpenAddDialog}>

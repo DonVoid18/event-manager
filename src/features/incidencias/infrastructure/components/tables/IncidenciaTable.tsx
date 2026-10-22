@@ -29,15 +29,15 @@ export function IncidenciaTable({ data, onOpenAddDialog }: IncidenciaTableProps)
           <h2 className="text-base font-semibold">Incidencias</h2>
           <p className="text-sm text-muted-foreground">{data.length} incidencia(s) registrada(s)</p>
         </div>
-        <Button variant="default" size="sm" onClick={onOpenAddDialog}>
+        <Button size="lg" className="h-11" onClick={onOpenAddDialog}>
           <Plus className="mr-2 size-4" />
           Registrar incidencia
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-xl border">
         <Table>
-          <TableHeader className="bg-muted">
+          <TableHeader className="bg-muted/70">
             <TableRow>
               <TableHead>Fecha</TableHead>
               <TableHead>Categoría</TableHead>
@@ -53,7 +53,7 @@ export function IncidenciaTable({ data, onOpenAddDialog }: IncidenciaTableProps)
                     {format(new Date(incidencia.occurredAt), "dd MMM yyyy, HH:mm", { locale: es })}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{INCIDENT_CATEGORY_LABELS[incidencia.category]}</Badge>
+                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">{INCIDENT_CATEGORY_LABELS[incidencia.category]}</Badge>
                   </TableCell>
                   <TableCell>
                     {incidencia.attendee

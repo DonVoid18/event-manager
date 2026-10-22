@@ -3,31 +3,29 @@
 import * as React from "react"
 import { usePathname } from "next/navigation"
 
-import { NavMain } from "@/shared/infrastructure/shadcn/components/nav-main"
+import { BrandMark } from "@/shared/infrastructure/components/BrandMark"
+import { NavMain, type NavItem } from "@/shared/infrastructure/shadcn/components/nav-main"
 import { NavUser } from "@/shared/infrastructure/shadcn/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
+  SidebarRail,
 } from "@/shared/infrastructure/shadcn/components/ui/sidebar"
 import {
   CalendarDays,
-  Earth,
   FileBarChart,
-  LayoutDashboardIcon,
-  PackageIcon,
+  LayoutDashboard,
   ScanLine,
+  UserCog,
   Users,
 } from "lucide-react"
 import {
   CHECKIN_ROUTE,
   EVENTOS_ROUTE,
   MAIN_ROUTE,
+  PERFIL_ROUTE,
   REPORTES_ROUTE,
   USUARIOS_ROUTE,
 } from "@/shared/infrastructure/utils/routes"
@@ -44,77 +42,76 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 export function AppSidebar({ user, role, ...props }: AppSidebarProps) {
   const pathname = usePathname()
 
-  const navMain = [
+  const operacion: NavItem[] = [
     {
       title: "Inicio",
+      description: "Centro de operaciones",
       url: MAIN_ROUTE,
-      icon: <LayoutDashboardIcon />,
+      icon: <LayoutDashboard />,
       isActive: pathname === MAIN_ROUTE,
     },
     {
       title: "Eventos",
+      description: "Registro e invitaciones",
       url: EVENTOS_ROUTE,
       icon: <CalendarDays />,
       isActive: pathname.startsWith(EVENTOS_ROUTE),
     },
     {
       title: "Check-in",
+      description: "Control de ingreso",
       url: CHECKIN_ROUTE,
       icon: <ScanLine />,
       isActive: pathname.startsWith(CHECKIN_ROUTE),
     },
+  ]
+
+  const analisis: NavItem[] = [
     {
       title: "Reportes",
+      description: "Indicadores y exportación",
       url: REPORTES_ROUTE,
       icon: <FileBarChart />,
       isActive: pathname.startsWith(REPORTES_ROUTE),
     },
-    {
-      title: "Productos",
-      url: "/productos",
-      icon: <PackageIcon />,
-      isActive: pathname === "/productos",
-    },
+  ]
+
+  const administracion: NavItem[] = [
     ...(role === "ADMIN"
       ? [
         {
           title: "Usuarios",
+          description: "Cuentas y roles",
           url: USUARIOS_ROUTE,
           icon: <Users />,
           isActive: pathname.startsWith(USUARIOS_ROUTE),
         },
       ]
       : []),
+    {
+      title: "Mi perfil",
+      description: "Datos y contraseña",
+      url: PERFIL_ROUTE,
+      icon: <UserCog />,
+      isActive: pathname.startsWith(PERFIL_ROUTE),
+    },
   ]
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <div className="flex items-center gap-1 group-data-[collapsible=icon]:flex-col">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                size="lg"
-                className="cursor-default hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent"
-              >
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Earth className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">TEMPLATE</span>
-                </div>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-          <SidebarTrigger className="shrink-0" />
-        </div>
+      <SidebarHeader className="px-4 pb-2 pt-5 group-data-[collapsible=icon]:px-2">
+        <BrandMark tone="dark" className="group-data-[collapsible=icon]:hidden" />
+        <BrandMark tone="dark" compact className="hidden group-data-[collapsible=icon]:flex" />
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={navMain} />
+      <SidebarContent className="gap-2 px-2 py-2">
+        <NavMain label="Operación" items={operacion} />
+        <NavMain label="Análisis" items={analisis} />
+        <NavMain label="Administración" items={administracion} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="p-3">
         <NavUser user={user} />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }

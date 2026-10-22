@@ -1,8 +1,12 @@
+export const INVITATION_QR_CONTENT_ID = "qr-invitacion";
+
 interface InvitationEmailTemplateProps {
   attendeeName: string;
   eventName: string;
   eventDateLabel: string;
   invitationCode: string;
+  /** Identificador del adjunto con la imagen QR (cid). */
+  qrContentId?: string;
 }
 
 export function InvitationEmailTemplate({
@@ -10,6 +14,7 @@ export function InvitationEmailTemplate({
   eventName,
   eventDateLabel,
   invitationCode,
+  qrContentId,
 }: InvitationEmailTemplateProps) {
   return (
     <div
@@ -35,10 +40,10 @@ export function InvitationEmailTemplate({
             fontSize: "22px",
             textAlign: "center",
             marginBottom: "20px",
-            color: "#2563eb",
+            color: "#0369a1",
           }}
         >
-          🎉 Invitación a {eventName}
+          Invitación a {eventName}
         </h1>
 
         <p style={{ fontSize: "16px", marginBottom: "10px" }}>
@@ -49,6 +54,18 @@ export function InvitationEmailTemplate({
           <strong>{eventDateLabel}</strong>. Presenta el siguiente código el día del evento para
           realizar tu check-in:
         </p>
+
+        {qrContentId && (
+          <div style={{ textAlign: "center", marginBottom: "16px" }}>
+            <img
+              src={`cid:${qrContentId}`}
+              alt={`Código QR ${invitationCode}`}
+              width={200}
+              height={200}
+              style={{ display: "inline-block", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "8px" }}
+            />
+          </div>
+        )}
 
         <div
           style={{

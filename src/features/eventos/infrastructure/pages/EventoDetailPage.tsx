@@ -4,17 +4,22 @@ import { Asistente, AsistenteInvitacion } from "@/features/asistentes/domain/Asi
 import { CreateAsistenteDialog } from "@/features/asistentes/infrastructure/components/dialogs/CreateAsistenteDialog"
 import { AsistenteTable } from "@/features/asistentes/infrastructure/components/tables/AsistenteTable"
 import { Evento } from "@/features/eventos/domain/Evento"
+import { EVENT_STATUS_LABELS, getEventStatus } from "@/features/eventos/domain/eventStatus"
 import { Incidencia } from "@/features/incidencias/domain/Incidencia"
 import { CreateIncidenciaDialog } from "@/features/incidencias/infrastructure/components/dialogs/CreateIncidenciaDialog"
 import { IncidenciaTable } from "@/features/incidencias/infrastructure/components/tables/IncidenciaTable"
+import { StatCard } from "@/shared/infrastructure/components/StatCard"
 import { Badge } from "@/shared/infrastructure/shadcn/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/infrastructure/shadcn/components/ui/card"
+import { Button } from "@/shared/infrastructure/shadcn/components/ui/button"
+import { Card, CardContent } from "@/shared/infrastructure/shadcn/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/infrastructure/shadcn/components/ui/tabs"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { CalendarDays, ScanLine, Ticket, Users } from "lucide-react"
+import { AlertTriangle, ArrowLeft, CalendarDays, MailCheck, ScanLine, UserPlus, Users } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
 interface EventoDetailPageProps {
   evento: Evento
@@ -32,9 +37,18 @@ export function EventoDetailPage({ evento, asistentes: initialAsistentes, incide
     setAsistentes((prev) => [nuevo, ...prev])
   }
 
+  // Mantiene el historial local de estados para mostrarlo sin recargar la página.
   const handleInvitationChange = (attendeeId: string, invitation: AsistenteInvitacion) => {
     setAsistentes((prev) =>
-      prev.map((a) => (a.id === attendeeId ? { ...a, invitation } : a))
+      prev.map((a) => {
+        if (a.id !== attendeeId) return a
+        const previousHistory = a.invitation?.history ?? []
+        const statusChanged = a.invitation?.status !== invitation.status || !a.invitation
+        const history = statusChanged
+          ? [...previousHistory, { status: invitation.status, changedAt: new Date() }]
+          : previousHistory
+        return { ...a, invitation: { ...invitation, history } }
+      })
     )
   }
 
@@ -42,77 +56,105 @@ export function EventoDetailPage({ evento, asistentes: initialAsistentes, incide
     setIncidencias((prev) => [nueva, ...prev])
   }
 
-  const confirmadas = asistentes.filter((a) => a.checkIn).length
+  const checkins = asistentes.filter((a) => a.checkIn).length
+  const enviadas = asistentes.filter((a) => a.invitation && a.invitation.status !== "PENDIENTE").length
+  const estado = getEventStatus(evento.eventDate)
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">{evento.name}</h1>
-            <Badge variant={evento.type === "PAGO" ? "default" : "secondary"}>
-              {evento.type === "PAGO" ? "De pago" : "Gratuito"}
-            </Badge>
+    <div className="space-y-6">
+      <Card className="gap-0 overflow-hidden p-0 shadow-sm">
+        <div className="bg-gradient-to-r from-sky-700 to-slate-900 p-6 text-white md:p-8">
+          <Link href="/eventos" className="mb-4 inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white">
+            <ArrowLeft className="size-4" /> Volver a eventos
+          </Link>
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-white/15 text-white hover:bg-white/15">
+                  {evento.type === "PAGO" ? "Evento de pago" : "Evento gratuito"}
+                </Badge>
+                <Badge className="bg-white/15 text-white hover:bg-white/15">{EVENT_STATUS_LABELS[estado]}</Badge>
+                <span className="rounded bg-white/10 px-2 py-0.5 font-mono text-xs">{evento.code}</span>
+              </div>
+              <h1 className="text-2xl font-bold md:text-3xl">{evento.name}</h1>
+              <p className="flex items-center gap-2 text-white/75">
+                <CalendarDays className="size-4" />
+                <span>{capitalize(format(new Date(evento.eventDate), "EEEE d 'de' MMMM 'de' yyyy, HH:mm 'h'", { locale: es }))}</span>
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button size="lg" className="h-12 bg-white px-5 text-base text-sky-800 hover:bg-white/90" onClick={() => setAddAsistenteOpen(true)}>
+                <UserPlus className="size-5" />
+                Registrar asistente
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-12 border-white/30 bg-white/10 px-5 text-base text-white hover:bg-white/20 hover:text-white"
+              >
+                <Link href={`/checkin?evento=${evento.id}`}>
+                  <ScanLine className="size-5" />
+                  Abrir check-in
+                </Link>
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground font-mono">{evento.code}</p>
         </div>
-        <Link href="/checkin" className="text-sm text-primary underline-offset-4 hover:underline">
-          Ir a check-in de este evento
-        </Link>
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Aforo ocupado"
+          value={`${asistentes.length} / ${evento.capacity}`}
+          icon={Users}
+          tone="sky"
+          progress={evento.capacity ? asistentes.length / evento.capacity : 0}
+        />
+        <StatCard
+          label="Invitaciones enviadas"
+          value={enviadas}
+          icon={MailCheck}
+          tone="violet"
+          progress={asistentes.length ? enviadas / asistentes.length : 0}
+        />
+        <StatCard
+          label="Check-ins realizados"
+          value={checkins}
+          icon={ScanLine}
+          tone="emerald"
+          progress={asistentes.length ? checkins / asistentes.length : 0}
+        />
+        <StatCard label="Incidencias" value={incidencias.length} icon={AlertTriangle} tone="amber" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Fecha</CardTitle>
-            <CalendarDays className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="text-lg font-semibold">
-            {format(new Date(evento.eventDate), "dd MMM yyyy, HH:mm", { locale: es })}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Aforo</CardTitle>
-            <Users className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="text-lg font-semibold">
-            {asistentes.length} / {evento.capacity}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Check-ins</CardTitle>
-            <ScanLine className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="text-lg font-semibold">{confirmadas}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Incidencias</CardTitle>
-            <Ticket className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="text-lg font-semibold">{incidencias.length}</CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="asistentes">
-        <TabsList>
-          <TabsTrigger value="asistentes">Asistentes</TabsTrigger>
-          <TabsTrigger value="incidencias">Incidencias</TabsTrigger>
-        </TabsList>
-        <TabsContent value="asistentes">
-          <AsistenteTable
-            data={asistentes}
-            eventType={evento.type}
-            onOpenAddDialog={() => setAddAsistenteOpen(true)}
-            onInvitationChange={handleInvitationChange}
-          />
-        </TabsContent>
-        <TabsContent value="incidencias">
-          <IncidenciaTable data={incidencias} onOpenAddDialog={() => setAddIncidenciaOpen(true)} />
-        </TabsContent>
-      </Tabs>
+      <Card className="shadow-sm">
+        <CardContent>
+          <Tabs defaultValue="asistentes" className="gap-5">
+            <TabsList className="h-11">
+              <TabsTrigger value="asistentes" className="px-5 text-sm">
+                Asistentes e invitaciones
+                <Badge variant="secondary" className="ml-2">{asistentes.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="incidencias" className="px-5 text-sm">
+                Incidencias
+                <Badge variant="secondary" className="ml-2">{incidencias.length}</Badge>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="asistentes">
+              <AsistenteTable
+                data={asistentes}
+                eventType={evento.type}
+                onOpenAddDialog={() => setAddAsistenteOpen(true)}
+                onInvitationChange={handleInvitationChange}
+              />
+            </TabsContent>
+            <TabsContent value="incidencias">
+              <IncidenciaTable data={incidencias} onOpenAddDialog={() => setAddIncidenciaOpen(true)} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {addAsistenteOpen && (
         <CreateAsistenteDialog

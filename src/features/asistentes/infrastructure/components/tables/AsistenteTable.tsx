@@ -3,7 +3,6 @@
 import {
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
   type ColumnDef,
@@ -12,6 +11,13 @@ import {
 import { Badge } from "@/shared/infrastructure/shadcn/components/ui/badge"
 import { Button } from "@/shared/infrastructure/shadcn/components/ui/button"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/infrastructure/shadcn/components/ui/select"
+import {
   Table,
   TableBody,
   TableCell,
@@ -19,13 +25,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/infrastructure/shadcn/components/ui/table"
-import { ChevronLeft, ChevronRight, FileText, Plus, Search, UserCheck } from "lucide-react"
+import { ChevronLeft, ChevronRight, FileText, QrCode, Search, UserCheck, UserPlus } from "lucide-react"
 import { Input } from "@/shared/infrastructure/shadcn/components/ui/input"
 import { Asistente, AsistenteInvitacion } from "@/features/asistentes/domain/Asistente"
 import { EventoType } from "@/features/eventos/domain/Evento"
+import { InvitationDetailDialog } from "@/features/invitaciones/infrastructure/components/InvitationDetailDialog"
 import { InvitationStatusSelect } from "@/features/invitaciones/infrastructure/components/InvitationStatusSelect"
 import { SendInvitationButton } from "@/features/invitaciones/infrastructure/components/SendInvitationButton"
 import { getPrivateFileUrl } from "@/shared/infrastructure/utils/privateFileUrl"
+import { format } from "date-fns"
 import { useMemo, useState } from "react"
 
 interface AsistenteTableProps {
@@ -37,18 +45,24 @@ interface AsistenteTableProps {
 
 export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationChange }: AsistenteTableProps) {
   const [search, setSearch] = useState("")
+  const [invitationFilter, setInvitationFilter] = useState("TODOS")
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  const [detailId, setDetailId] = useState<string | null>(null)
 
   const filteredData = useMemo(() => {
-    if (search.trim() === "") return data
-    const term = search.toLowerCase()
-    return data.filter(
-      (a) =>
+    const term = search.trim().toLowerCase()
+    return data.filter((a) => {
+      const matchesSearch =
+        term === "" ||
         `${a.firstName} ${a.lastName}`.toLowerCase().includes(term) ||
         a.documentId.toLowerCase().includes(term) ||
-        a.email.toLowerCase().includes(term)
-    )
-  }, [data, search])
+        a.email.toLowerCase().includes(term) ||
+        (a.invitation?.code.toLowerCase().includes(term) ?? false)
+      const status = a.invitation?.status ?? "SIN"
+      const matchesStatus = invitationFilter === "TODOS" || status === invitationFilter
+      return matchesSearch && matchesStatus
+    })
+  }, [data, search, invitationFilter])
 
   const columns = useMemo<ColumnDef<Asistente>[]>(() => {
     const base: ColumnDef<Asistente>[] = [
@@ -56,31 +70,36 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
         id: "nombre",
         header: "Asistente",
         cell: ({ row }) => (
-          <div>
-            <div className="font-medium">
-              {row.original.firstName} {row.original.lastName}
+          <div className="flex min-w-[220px] items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+              {row.original.firstName[0]}
+              {row.original.lastName[0]}
             </div>
-            <div className="text-xs text-muted-foreground">{row.original.email}</div>
+            <div className="min-w-0">
+              <div className="truncate font-semibold">
+                {row.original.firstName} {row.original.lastName}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">{row.original.email}</div>
+            </div>
           </div>
         ),
       },
       {
         accessorKey: "documentId",
         header: "Documento",
-        size: 120,
+        cell: ({ row }) => <span className="font-mono text-sm">{row.original.documentId}</span>,
       },
       {
         id: "checkin",
-        header: "Check-in",
-        size: 110,
+        header: "Ingreso",
         cell: ({ row }) =>
           row.original.checkIn ? (
-            <Badge variant="default">
-              <UserCheck className="mr-1 size-3" />
-              Ingresó
+            <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+              <UserCheck className="mr-1 size-3.5" />
+              {format(new Date(row.original.checkIn.checkedInAt), "HH:mm")}
             </Badge>
           ) : (
-            <Badge variant="outline">Sin ingreso</Badge>
+            <Badge variant="outline" className="text-muted-foreground">Sin ingreso</Badge>
           ),
       },
       {
@@ -105,6 +124,15 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
                   onInvitationChange(attendee.id, { ...attendee.invitation!, status })
                 }
               />
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-9"
+                title="Ver QR e historial"
+                onClick={() => setDetailId(attendee.id)}
+              >
+                <QrCode className="size-4" />
+              </Button>
               {attendee.invitation.status === "PENDIENTE" && (
                 <SendInvitationButton
                   attendeeId={attendee.id}
@@ -123,7 +151,7 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
         header: "Pago",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <span className="text-sm">
+            <span className="text-sm font-medium tabular-nums">
               {row.original.paymentAmount ? `S/ ${row.original.paymentAmount.toFixed(2)}` : "-"}
             </span>
             {row.original.paymentReceiptKey && (
@@ -131,6 +159,7 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
                 href={getPrivateFileUrl(row.original.paymentReceiptKey)}
                 target="_blank"
                 rel="noreferrer"
+                title="Ver comprobante"
                 className="text-muted-foreground hover:text-foreground"
               >
                 <FileText className="size-4" />
@@ -151,45 +180,52 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
     getRowId: (row) => row.id,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   })
 
+  const detail = detailId ? data.find((a) => a.id === detailId) : null
+
   return (
-    <div className="w-full flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-semibold">Asistentes</h2>
-          <p className="text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} asistente(s)
-          </p>
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[260px] flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre, documento, correo o código..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              table.setPageIndex(0)
+            }}
+            className="h-11 pl-9 text-base"
+          />
         </div>
-        <Button variant="default" size="sm" onClick={onOpenAddDialog}>
-          <Plus className="mr-2 size-4" />
+        <Select value={invitationFilter} onValueChange={(v) => { setInvitationFilter(v); table.setPageIndex(0) }}>
+          <SelectTrigger className="h-11 w-52">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TODOS">Todas las invitaciones</SelectItem>
+            <SelectItem value="SIN">Sin invitación</SelectItem>
+            <SelectItem value="PENDIENTE">Pendientes</SelectItem>
+            <SelectItem value="ENVIADA">Enviadas</SelectItem>
+            <SelectItem value="CONFIRMADA">Confirmadas</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button size="lg" className="h-11" onClick={onOpenAddDialog}>
+          <UserPlus className="size-4" />
           Registrar asistente
         </Button>
       </div>
 
-      <div className="relative w-full max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por nombre, documento o correo..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-8"
-        />
-      </div>
-
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-xl border">
         <Table>
-          <TableHeader className="bg-muted">
+          <TableHeader className="bg-muted/70">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead key={header.id} className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -200,7 +236,7 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="px-4 py-3">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -208,8 +244,8 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No hay asistentes registrados.
+                <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
+                  No hay asistentes que coincidan con la búsqueda.
                 </TableCell>
               </TableRow>
             )}
@@ -217,31 +253,29 @@ export function AsistenteTable({ data, eventType, onOpenAddDialog, onInvitationC
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-4">
-        <div className="flex w-fit items-center justify-center text-sm font-medium">
-          Página {table.getState().pagination.pageIndex + 1} de {Math.max(table.getPageCount(), 1)}
-        </div>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} asistente(s) · Página {table.getState().pagination.pageIndex + 1} de{" "}
+          {Math.max(table.getPageCount(), 1)}
+        </p>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="size-8"
-            size="icon"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
+          <Button variant="outline" size="icon" className="size-9" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
             <ChevronLeft />
           </Button>
-          <Button
-            variant="outline"
-            className="size-8"
-            size="icon"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
+          <Button variant="outline" size="icon" className="size-9" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
             <ChevronRight />
           </Button>
         </div>
       </div>
+
+      {detail?.invitation && (
+        <InvitationDetailDialog
+          open
+          onOpenChange={(open) => !open && setDetailId(null)}
+          attendeeName={`${detail.firstName} ${detail.lastName}`}
+          invitation={detail.invitation}
+        />
+      )}
     </div>
   )
 }

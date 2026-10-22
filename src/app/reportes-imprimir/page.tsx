@@ -1,5 +1,6 @@
 import { auth } from "@/shared/infrastructure/libs/auth"
 import { getReportData } from "@/features/reportes/infrastructure/queries/getReportData"
+import { parseReportParams } from "@/features/reportes/infrastructure/utils/parseReportParams"
 import { SIGN_IN_ROUTE } from "@/shared/infrastructure/utils/routes"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
@@ -8,10 +9,8 @@ import { es } from "date-fns/locale"
 export const revalidate = 0
 
 interface PageProps {
-  searchParams: Promise<{ eventId?: string; from?: string; to?: string; tipo?: string }>
+  searchParams: Promise<{ eventId?: string; from?: string; to?: string; tipo?: string; tipoEvento?: string }>
 }
-
-const VALID_TIPOS = ["REGISTRO", "INVITACIONES", "CHECKIN"] as const
 
 const TIPO_LABELS: Record<string, string> = {
   REGISTRO: "Registro de asistentes",
@@ -31,14 +30,9 @@ const page = async ({ searchParams }: PageProps) => {
     redirect(SIGN_IN_ROUTE)
   }
 
-  const params = await searchParams
-  const tipo = VALID_TIPOS.includes(params.tipo as never) ? (params.tipo as (typeof VALID_TIPOS)[number]) : "REGISTRO"
+  const { filters, tipo } = parseReportParams(await searchParams)
 
-  const { rows, summary } = await getReportData({
-    eventId: params.eventId,
-    from: params.from,
-    to: params.to,
-  })
+  const { rows, summary } = await getReportData(filters)
 
   const displayRows = tipo === "CHECKIN" ? rows.filter((r) => r.checkedInAt) : rows
 

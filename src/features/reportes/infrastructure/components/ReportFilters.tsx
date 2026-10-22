@@ -31,10 +31,16 @@ export function ReportFilters({ eventos }: ReportFiltersProps) {
   const [from, setFrom] = useState(searchParams.get("from") ?? "")
   const [to, setTo] = useState(searchParams.get("to") ?? "")
   const [tipo, setTipo] = useState(searchParams.get("tipo") ?? "REGISTRO")
+  const [tipoEvento, setTipoEvento] = useState(searchParams.get("tipoEvento") ?? "TODOS")
 
-  const applyFilters = (next: { eventId?: string; from?: string; to?: string; tipo?: string }) => {
+  const applyFilters = (next: { eventId?: string; from?: string; to?: string; tipo?: string; tipoEvento?: string }) => {
     const params = new URLSearchParams(searchParams.toString())
-    const values = { eventId, from, to, tipo, ...next }
+    const values = { eventId, from, to, tipo, tipoEvento, ...next }
+    if (!values.tipoEvento || values.tipoEvento === "TODOS") {
+      params.delete("tipoEvento")
+    } else {
+      params.set("tipoEvento", values.tipoEvento)
+    }
 
     if (!values.eventId || values.eventId === "TODOS") {
       params.delete("eventId")
@@ -61,9 +67,9 @@ export function ReportFilters({ eventos }: ReportFiltersProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-2">
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-muted-foreground">Evento</label>
+    <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1.3fr_auto]">
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">Evento</label>
         <Select
           value={eventId}
           onValueChange={(value) => {
@@ -71,7 +77,7 @@ export function ReportFilters({ eventos }: ReportFiltersProps) {
             applyFilters({ eventId: value })
           }}
         >
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="h-11 w-full">
             <SelectValue placeholder="Todos los eventos" />
           </SelectTrigger>
           <SelectContent>
@@ -85,8 +91,8 @@ export function ReportFilters({ eventos }: ReportFiltersProps) {
         </Select>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-muted-foreground">Desde</label>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">Desde</label>
         <Input
           type="date"
           value={from}
@@ -94,12 +100,12 @@ export function ReportFilters({ eventos }: ReportFiltersProps) {
             setFrom(e.target.value)
             applyFilters({ from: e.target.value })
           }}
-          className="w-40"
+          className="h-11 w-full"
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-muted-foreground">Hasta</label>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">Hasta</label>
         <Input
           type="date"
           value={to}
@@ -107,12 +113,32 @@ export function ReportFilters({ eventos }: ReportFiltersProps) {
             setTo(e.target.value)
             applyFilters({ to: e.target.value })
           }}
-          className="w-40"
+          className="h-11 w-full"
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-muted-foreground">Tipo de reporte</label>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">Tipo de evento</label>
+        <Select
+          value={tipoEvento}
+          onValueChange={(value) => {
+            setTipoEvento(value)
+            applyFilters({ tipoEvento: value })
+          }}
+        >
+          <SelectTrigger className="h-11 w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TODOS">Todos</SelectItem>
+            <SelectItem value="GRATUITO">Gratuitos</SelectItem>
+            <SelectItem value="PAGO">De pago</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">Tipo de reporte</label>
         <Select
           value={tipo}
           onValueChange={(value) => {
@@ -120,7 +146,7 @@ export function ReportFilters({ eventos }: ReportFiltersProps) {
             applyFilters({ tipo: value })
           }}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="h-11 w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -131,14 +157,16 @@ export function ReportFilters({ eventos }: ReportFiltersProps) {
         </Select>
       </div>
 
-      {(eventId !== "TODOS" || from || to || tipo !== "REGISTRO") && (
+      {(eventId !== "TODOS" || from || to || tipo !== "REGISTRO" || tipoEvento !== "TODOS") && (
         <Button
           variant="ghost"
+          className="h-11"
           onClick={() => {
             setEventId("TODOS")
             setFrom("")
             setTo("")
             setTipo("REGISTRO")
+            setTipoEvento("TODOS")
             router.push(pathname)
           }}
         >

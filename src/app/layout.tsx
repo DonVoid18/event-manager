@@ -1,6 +1,7 @@
 import "./globals.css";
 
-import { Geist_Mono, Inter } from "next/font/google";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 
 import { Toaster } from "@/shared/infrastructure/shadcn/components/ui/sonner";
 import { TooltipProvider } from "@/shared/infrastructure/shadcn/components/ui/tooltip";
@@ -10,16 +11,12 @@ import { cn } from "@/shared/infrastructure/shadcn/lib/utils";
 import { ThemeProvider } from "@/shared/infrastructure/components/theme-provider";
 import { ClientErrorReporter } from "@/shared/infrastructure/logging/ClientErrorReporter";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Template",
-  description: "Plantilla base de proyecto Next.js",
+  title: {
+    default: "TUMITECH · Gestión de eventos",
+    template: "%s · TUMITECH",
+  },
+  description: "Sistema web para la gestión de eventos de TUMITECH S.A.C.: registro de asistentes, invitaciones y check-in.",
 };
 
 export default function RootLayout({
@@ -28,21 +25,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)} suppressHydrationWarning>
-      <body
-        className={`${geistMono.variable} antialiased`}
-      >
+    <html lang="es" className={cn("font-sans", GeistSans.variable, GeistMono.variable)} suppressHydrationWarning>
+      <body className="antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <ClientErrorReporter />
           <TooltipProvider>
             {children}
           </TooltipProvider>
-          <Toaster />
+          <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>
     </html>

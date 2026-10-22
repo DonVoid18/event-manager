@@ -1,0 +1,42 @@
+name: Desplegar imagen Blue-Green (instalaciones existentes)
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Imagen publicada, por ejemplo usuario/proyecto:version
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: vars.DEPLOY_ENABLED == 'true' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Desplegar en el servidor
+        env:
+          IMAGE: ${{ inputs.image }}
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          APP_DIR: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          [[ "$IMAGE" =~ ^[a-zA-Z0-9][a-zA-Z0-9./:@_-]*$ ]]
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
+          [[ "$SSH_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ && "$SSH_PORT" -gt 0 && "$SSH_PORT" -le 65535 ]]
+          [[ "$APP_DIR" =~ ^/[a-zA-Z0-9_/-]+$ && "$APP_DIR" != / ]]
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]]
+          umask 077
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/deploy-key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
+          trap 'rm -f "$RUNNER_TEMP/deploy-key"' EXIT
+          ssh -i "$RUNNER_TEMP/deploy-key" -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$RUNNER_TEMP/known_hosts" -o ConnectTimeout=15 "$SSH_USER@$SSH_HOST" "cd '$APP_DIR' && bash deploy.sh '$IMAGE'"

@@ -46,17 +46,17 @@ export function NavUser({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex h-12 w-full min-w-0 items-center gap-2 overflow-hidden rounded-lg border border-sidebar-border bg-background p-2 text-left shadow-xs transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-ring group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-0!"
+          className="flex h-14 w-full min-w-0 items-center gap-3 overflow-hidden rounded-xl border border-sidebar-border bg-sidebar-accent/60 p-2.5 text-left text-sidebar-accent-foreground shadow-xs transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-ring group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-0!"
         >
-          <Avatar className="h-8 w-8 shrink-0 rounded-full border border-border shadow-sm">
+          <Avatar className="h-9 w-9 shrink-0 rounded-full border border-sidebar-border shadow-sm">
             <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback className="rounded-full bg-primary/10 text-primary text-sm font-semibold">
+            <AvatarFallback className="rounded-full bg-sky-600 text-white text-sm font-semibold">
               {user.name ? user.name.slice(0, 2).toUpperCase() : "US"}
             </AvatarFallback>
           </Avatar>
           <div className="grid min-w-0 flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="truncate font-medium">{user.name}</span>
-            <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+            <span className="truncate font-semibold">{user.name}</span>
+            <span className="truncate text-xs text-sidebar-foreground/70">{user.email}</span>
           </div>
         </button>
       </DropdownMenuTrigger>

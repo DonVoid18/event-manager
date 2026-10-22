@@ -2,6 +2,7 @@
 
 import { es } from "date-fns/locale";
 import { format } from "date-fns";
+import QRCode from "qrcode";
 import { prisma } from "@/shared/infrastructure/libs/prisma";
 import { logServerError } from "@/shared/infrastructure/logging/serverLogger";
 import { requireActiveSession } from "@/shared/infrastructure/utils/authorization";
@@ -9,7 +10,7 @@ import {
   fromEmail,
   resend,
 } from "@/shared/infrastructure/resend/infrastructure/utils/resend";
-import { InvitationEmailTemplate } from "@/shared/infrastructure/resend/infrastructure/components/InvitationEmailTemplate";
+import { INVITATION_QR_CONTENT_ID, InvitationEmailTemplate } from "@/shared/infrastructure/resend/infrastructure/components/InvitationEmailTemplate";
 import { generateUniqueInvitationCode } from "../utils/generateInvitationCode";
 
 export const sendInvitationAction = async (attendeeId: string) => {
@@ -37,6 +38,9 @@ export const sendInvitationAction = async (attendeeId: string) => {
       locale: es,
     });
 
+    // El QR contiene el código de invitación y se adjunta como imagen embebida en el correo.
+    const qrImage = await QRCode.toBuffer(invitation.code, { width: 320, margin: 1 });
+
     const { error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: [attendee.email],
@@ -46,7 +50,15 @@ export const sendInvitationAction = async (attendeeId: string) => {
         eventName: attendee.event.name,
         eventDateLabel,
         invitationCode: invitation.code,
+        qrContentId: INVITATION_QR_CONTENT_ID,
       }),
+      attachments: [
+        {
+          filename: `${invitation.code}.png`,
+          content: qrImage,
+          contentId: INVITATION_QR_CONTENT_ID,
+        },
+      ],
     });
 
     if (sendError) {

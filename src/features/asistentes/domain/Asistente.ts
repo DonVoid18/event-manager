@@ -1,10 +1,16 @@
 export type InvitationStatus = "PENDIENTE" | "ENVIADA" | "CONFIRMADA";
 
+export interface InvitationHistoryEntry {
+  status: InvitationStatus;
+  changedAt: Date;
+}
+
 export interface AsistenteInvitacion {
   id: string;
   code: string;
   status: InvitationStatus;
   sentAt: Date | null;
+  history?: InvitationHistoryEntry[];
 }
 
 export interface AsistenteCheckIn {

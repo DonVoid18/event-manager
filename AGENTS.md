@@ -60,9 +60,16 @@
 - Para cambios solo de documentación, revisar contenido y diff; no hace falta compilar.
 - Informar qué se verificó y cualquier fallo o limitación del entorno. Distinguir problemas preexistentes de los introducidos por el cambio.
 
-## Despliegue Blue-Green
+## Despliegue standalone
 
-- Mantener sencillo el uso: un único `.env`, una imagen y `bash deploy.sh imagen:version`. Consultar `README.md`.
+- El despliegue principal usa Next.js standalone con PM2 o systemd y Nginx en el host. Consultar `README.md`.
+- Mantener `.env`, PostgreSQL y `private` fuera del artefacto. Conservar `/api/health/ready` y validar la identidad SSH mediante `known_hosts`.
+- Ejecutar migraciones una vez y mantenerlas compatibles con la versión activa. Una recarga de PM2 no revierte datos.
+- Al cambiar despliegue, validar Compose, Nginx, shell y workflows con las herramientas disponibles. La aprobación de código no autoriza producción.
+
+## Despliegue Blue-Green existente
+
+- Mantener sencillo el uso: un único `.env`, una imagen y `bash deploy.sh imagen:version`. Consultar `README.blue-green.md`.
 - Conservar el arranque de la candidata antes del cambio de Nginx, las comprobaciones de salud, el bloqueo y el rollback verificado.
 - No recrear PostgreSQL al actualizar la aplicación ni borrar sus volúmenes. Mantener los archivos privados autenticados y los assets de versiones anteriores.
 - Ejecutar migraciones una sola vez y mantener compatibilidad entre ambas versiones. No reintentar migraciones fallidas a ciegas; rollback de aplicación no revierte datos.

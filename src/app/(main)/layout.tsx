@@ -1,14 +1,13 @@
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/shared/infrastructure/shadcn/components/ui/sidebar";
 import { EMAIL_VERIFICATION_ROUTE, SIGN_IN_ROUTE } from "@/shared/infrastructure/utils/routes";
 
 import { auth, signOut } from "@/shared/infrastructure/libs/auth";
 import { AppSidebar } from "@/shared/infrastructure/shadcn/components/app-sidebar";
 import { UserLoged } from "@/shared/infrastructure/types/userLoged";
-import { Earth } from "lucide-react";
+import { AppHeader } from "@/shared/infrastructure/components/AppHeader";
 import { redirect } from "next/navigation";
 
 export default async function MainLayout({
@@ -43,7 +42,7 @@ export default async function MainLayout({
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider style={{ "--sidebar-width": "18rem" } as React.CSSProperties}>
       <AppSidebar
         user={{
           name: user.name ?? "",
@@ -52,19 +51,13 @@ export default async function MainLayout({
         }}
         role={user.role}
       />
-      <SidebarInset className="h-svh overflow-hidden">
-        <div className="flex h-14 shrink-0 items-center justify-between border-b px-4 md:hidden">
-          <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Earth className="size-4" />
-            </div>
-            <span className="text-sm font-semibold">TEMPLATE</span>
+      <SidebarInset className="h-svh overflow-hidden bg-background">
+        <AppHeader />
+        <div id="app-scroll" className="flex flex-1 flex-col overflow-y-auto">
+          <div className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-6 p-4 md:p-8">
+            {children}
           </div>
-          <SidebarTrigger />
         </div>
-        <main className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-          {children}
-        </main>
       </SidebarInset>
     </SidebarProvider>
   );

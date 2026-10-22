@@ -22,12 +22,14 @@ jobs:
       - run: pnpm lint
       - run: pnpm exec tsc --noEmit
       - run: pnpm build
+      - run: pnpm build:standalone
       - name: Verificar despliegue
         run: |
           python3 -m unittest discover -s scripts/deploy -p 'test_*.py' -v
-          bash -n deploy.sh renew-certs.sh
-          shellcheck deploy.sh renew-certs.sh
+          bash -n deploy.sh renew-certs.sh scripts/deploy/deploy-standalone.sh
+          shellcheck deploy.sh renew-certs.sh scripts/deploy/deploy-standalone.sh
           cp .env.example .env
           docker compose -f compose.prod.yml config --quiet
           docker compose -f compose.cert.yml config --quiet
+          docker compose config --quiet
           docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.7 -shellcheck=
