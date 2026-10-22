@@ -100,7 +100,7 @@ jobs:
           deploy_path="$1"
           release="$2"
           test -f "$deploy_path/.env" || { echo "Falta $deploy_path/.env" >&2; exit 1; }
-          install -d -m 755 "$deploy_path/private"
+          install -d -m 700 "$deploy_path/private"
           tar -xzf "/tmp/event-manager-${release}.tar.gz" -C "$deploy_path"
           rm -f "/tmp/event-manager-${release}.tar.gz"
           cd "$deploy_path"

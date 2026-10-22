@@ -41,6 +41,7 @@ Instala Node.js 22, pnpm 10, PM2, Nginx y Docker con Compose si PostgreSQL estar
 cp .env.example .env
 chmod 600 .env
 mkdir -p private
+chmod 700 private
 docker compose up -d db
 pnpm install --frozen-lockfile
 pnpm db:generate
