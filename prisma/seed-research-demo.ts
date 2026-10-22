@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { expand } from "dotenv-expand";
 
-import { buildResearchDemoPlan, validateResearchDemoPlan } from "./seeds/research-demo-plan";
+import { buildResearchDemoPlan, researchDemoEventName, validateResearchDemoPlan } from "./seeds/research-demo-plan";
 
 const plans = buildResearchDemoPlan();
 validateResearchDemoPlan(plans);
@@ -61,6 +61,22 @@ async function main() {
 
       if (alreadyApplied) {
         console.log("La carga DEMO ya existe con los totales esperados; no se realizaron cambios.");
+        return;
+      }
+
+      const groupedNames = events.length === plans.length && events.every((event) => {
+        const index = plans.findIndex((plan) => plan.code === event.code);
+        const plan = plans[index];
+        return index >= 0 && event.name === researchDemoEventName(index, true) &&
+          event.type === plan.type && event.capacity === plan.capacity &&
+          event.eventDate.getTime() === plan.date.getTime();
+      });
+      if (groupedNames) {
+        for (const event of events) {
+          const plan = plans.find((item) => item.code === event.code)!;
+          await tx.event.update({ where: { id: event.id }, data: { name: plan.name } });
+        }
+        console.log("Se alternaron las ciudades en los nombres de los 50 eventos; los demás registros no cambiaron.");
         return;
       }
 

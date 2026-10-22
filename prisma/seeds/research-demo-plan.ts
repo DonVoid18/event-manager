@@ -18,6 +18,12 @@ const themes = [
 ];
 const locations = ["Huánuco", "Amarilis", "Pillco Marca", "Tingo María", "Churubamba"];
 
+export function researchDemoEventName(index: number, grouped = false) {
+  const block = Math.floor(index / themes.length);
+  const location = locations[grouped ? block : (index + block) % locations.length];
+  return `${themes[index % themes.length]} en ${location}`;
+}
+
 function distribute(total: number, weights: number[]) {
   const weightTotal = weights.reduce((sum, weight) => sum + weight, 0);
   const raw = weights.map((weight) => total * weight / weightTotal);
@@ -58,7 +64,7 @@ export function buildResearchDemoPlan(): ResearchDemoEventPlan[] {
     const type = index % 4 === 2 ? "PAGO" : "GRATUITO";
     return {
       code: `EVT-2026-${number}`,
-      name: `${themes[index % themes.length]} en ${locations[Math.floor(index / themes.length)]}`,
+      name: researchDemoEventName(index),
       date: new Date(start + Math.round((end - start) * index / (EVENT_COUNT - 1)) + (index % 4) * 3_600_000),
       type,
       capacity: attendeeCounts[index] + 10 + (index * 3) % 26,
